@@ -11,10 +11,10 @@ key.generateKeyPair();
 privateKeyPem = key.exportKey('private')
 
 app.use(session({
-  secret: 'csci2720',
+  secret: 'csci3100',
   store: store,
   cookie: {
-    maxAge: 3600000 // 1 hour
+    maxAge: 3600000 // in ms, 3600000 = 1 hour
   },
   resave: false,
   saveUninitialized: false
@@ -27,7 +27,8 @@ app.use(cors({
 }));
 app.use(express.json());
 
-const { mongoose, Schema} = require('mongoose');
+const mongoose = require('mongoose');
+const { Schema } = require('mongoose');
 mongoose.connect('mongodb://127.0.0.1:27017/3100A5');
 
 // const convert = require('xml-js'); // xml-js Library - convert XML to JSON
