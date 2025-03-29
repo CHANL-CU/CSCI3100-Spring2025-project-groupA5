@@ -62,6 +62,8 @@ const Login = (props) => {
   const [asAdmin, setAsAdmin] = useState(false);
   const [msg, setMsg] = useState('');
   const [password, setPassword] = useState('');
+  const [licenseKey, setLicenseKey] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -90,7 +92,7 @@ const Login = (props) => {
   const attemptLogin = async () => {
     const name = document.getElementById('name').value;
     const passwordInput = document.getElementById('password').value;
-
+  
     const resp_pw = await fetch('http://localhost:8080/encrypt', {
       method: 'POST',
       headers: {
@@ -99,11 +101,11 @@ const Login = (props) => {
     });
     let a = await resp_pw.json();
     let key = a.en;
-
+  
     const encryptedPassword = await encryptMessage(key, passwordInput);
-
-    const data = { name, password: encryptedPassword, asAdmin };
-
+  
+    const data = { name, password: encryptedPassword, asAdmin, licenseKey };
+  
     const response = await fetch('http://localhost:8080/login', {
       method: 'POST',
       headers: {
@@ -112,7 +114,7 @@ const Login = (props) => {
       body: JSON.stringify(data),
       credentials: 'include'
     });
-
+  
     const loginResult = await response.text();
     handleLoginResponse(loginResult, name);
   };
@@ -121,14 +123,14 @@ const Login = (props) => {
     const name = document.getElementById('name').value;
     const passwordInput = document.getElementById('password').value;
     const isAdmin = asAdmin;
-    const data = { name, password: passwordInput, isAdmin };
-
+    const data = { name, password: passwordInput, email, isAdmin };
+  
     if (!isPasswordValid(passwordInput)) {
       setMsg('The password setup is not valid');
       setError(true);
       return;
     }
-
+  
     const response = await fetch('http://localhost:8080/register', {
       method: 'POST',
       headers: {
@@ -136,13 +138,13 @@ const Login = (props) => {
       },
       body: JSON.stringify(data),
     });
-
+  
     if (response.ok) {
       setIsRegistering(false);
-      setMsg('Registration successful!');
+      setMsg('Registration successful! Check your email for the license key.');
       setError(false);
     } else {
-      setMsg('User already exists!');
+      setMsg('User already exists or email is invalid!');
       setError(true);
     }
   };
@@ -180,7 +182,27 @@ const Login = (props) => {
     event.preventDefault();
     const name = document.getElementById('name').value;
     const passwordInput = document.getElementById('password').value;
-
+  
+    // Email validity check during registration
+    if (isRegistering) {
+      const emailInput = document.getElementById('email').value;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email regex
+      if (!emailRegex.test(emailInput)) {
+        setMsg('Please enter a valid email address.\n(example@gmail.com)');
+        setError(true);
+        return;
+      }
+      setEmail(emailInput); // Update state with valid email
+    } else {
+      // Login requires license key
+      if (!licenseKey) {
+        setMsg('Please enter your license key.');
+        setError(true);
+        return;
+      }
+    }
+  
+    // Proceed with login or registration
     if (!name || !passwordInput) {
       setMsg('Please fill in all fields.');
       setError(true);
@@ -206,8 +228,31 @@ const Login = (props) => {
           <ToggleButton onClick={() => { setIsRegistering(false); setMsg(''); setError(false); }}>Back to Login</ToggleButton>
         )}
         <Form id="postForm" onSubmit={submit}>
-          <Input type="text" id="name" name="name" placeholder="Username" />
-          <Input onChange={handlePasswordChange} type="password" id="password" name="password" placeholder="Password" />
+          <Input type="text" id="name" name="name" placeholder="Username" required />
+          <Input onChange={handlePasswordChange} type="password" id="password" name="password" placeholder="Password" required />  
+          {isRegistering ? (
+            <>
+              <Input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </>
+          ) : (
+            <Input
+              type="text"
+              id="licenseKey"
+              name="licenseKey"
+              placeholder="License Key"
+              value={licenseKey}
+              onChange={(e) => setLicenseKey(e.target.value)}
+              required
+            />
+          )}
           {isRegistering && (
             <>
               <PasswordStrengthChecker password={password} />

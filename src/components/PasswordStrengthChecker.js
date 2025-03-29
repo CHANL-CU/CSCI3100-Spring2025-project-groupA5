@@ -23,7 +23,6 @@ const PasswordStrengthChecker = ({ password }) => {
   const strength = passwordStrength(password).id;
 
   const getColor = (strength) => {
-    console.log(strength);
     switch (strength) {
       case 0:
         return '#ff4d4d'; // Too weak (red)

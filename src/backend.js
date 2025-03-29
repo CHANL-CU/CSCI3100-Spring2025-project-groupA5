@@ -31,15 +31,34 @@ const mongoose = require('mongoose');
 const { Schema } = require('mongoose');
 mongoose.connect('mongodb://127.0.0.1:27017/3100A5');
 
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+
+// Generate a unique license key
+const generateLicenseKey = () => {
+    return crypto.randomBytes(16).toString('hex'); // random 32-character hex string
+};
+
+// Nodemailer configuration
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'csci3100a5@gmail.com', // email
+        pass: 'nukrebrrtigrzhou', // email app password
+    },
+});
+
 // const convert = require('xml-js'); // xml-js Library - convert XML to JSON
 
 const { LOGIN_OK, LOGIN_NOUSER, LOGIN_WRONGPW, LOGIN_ERR, LOGIN_NOADMIN } = require('./constants.js');
 
 /* --------------- Data Schemas and Models --------------- */
 const UserSchema = mongoose.Schema({
-    name: { type: String, required: true, unique: true, },
-    password: { type: String, required: true, },
-    isAdmin: { type: Boolean, required: true, },
+    name: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    licenseKey: { type: String, required: true, unique: true },
+    isAdmin: { type: Boolean, required: true },
 });
 const User = mongoose.model("User", UserSchema);
 
@@ -168,16 +187,40 @@ app.post('/register', async (req, res) => {
     try {
         res.set('Content-Type', 'text/plain');
 
-        const input = req.body; // name, password
-        const user = await User.findOne({ name: input.name });
-        if (user) {
+        const { name, password, email, isAdmin } = req.body;
+        const existingUser = await User.findOne({ name });
+        const existingEmail = await User.findOne({ email });
+
+        if (existingUser) {
             return res.status(406).send(`User already exists.`);
         }
-        new User({ name: input.name, password: input.password, isAdmin: input.isAdmin }).save()
-        .then((user) => {
-            return res.status(201).send(`${user}`);
+
+        if (existingEmail) {
+            return res.status(406).send(`Email already in use.`);
+        }
+
+        const licenseKey = generateLicenseKey();
+        const newUser = new User({ name, password, email, licenseKey, isAdmin });
+
+        // Send license key via email
+        const mailOptions = {
+            from: 'csci3100a5@gmail.com',
+            to: email,
+            subject: 'License Key for Pac-Man',
+            text: `Hello ${name},\n\nYour license key is: ${licenseKey}\n\nThank you for registering!`,
+        };
+
+        transporter.sendMail(mailOptions, async (error, info) => {
+            if (error) {
+                console.error('Error sending email:', error);
+                return res.status(500).send('Failed to send license key.');
+            }
+            console.log('Email sent:', info.response);
+            await newUser.save();
+            return res.status(201).send(`Registration successful! License key sent to ${email}.`);
         });
     } catch (err) {
+        console.error(err);
         res.status(406).send(`Failed to create user.`);
     }
 });
