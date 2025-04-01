@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
 
+// Usage: ./App.js
+// Interface for user CRUD
 const Admin = (props) => {
   const sessionMade = useRef(false);
 

@@ -4,8 +4,7 @@ import PasswordStrengthChecker from './PasswordStrengthChecker.js';
 
 const { LOGIN_OK, LOGIN_NOUSER, LOGIN_WRONGPW, LOGIN_NOADMIN, LOGIN_ERR } = require('../constants.js');
 
-// Security Start //
-
+// Functions for enhancing Security //
 function pemToArrayBuffer(pem) {
   pem = String(pem);
   const b64 = pem.replace(/(-----(BEGIN|END) PUBLIC KEY-----|\n)/g, '');
@@ -49,7 +48,6 @@ async function encryptMessage(publicKeyPem, msg) {
 
   return new Uint8Array(encrypted);
 }
-
 // Security End //
 
 const isPasswordValid = (password) => {
@@ -57,6 +55,8 @@ const isPasswordValid = (password) => {
   return passwordRegex.test(password);
 };
 
+// Usage: ./App.js
+// Login/Register interface
 const Login = (props) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [asAdmin, setAsAdmin] = useState(false);

@@ -1,5 +1,7 @@
 import React from 'react';
 
+// Usage: ./User.js
+// Fetch and display usernames and scores
 const Leaderboard = () => {
   return (
     <div>

@@ -4,6 +4,8 @@ import Login from './Login.js';
 import User from './User.js';
 import Admin from './Admin.js';
 
+// Usage: ../index.js
+// Highest-level component, direct user to Login, and User/Admin after login
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [asAdmin, setAsAdmin] = useState(false);

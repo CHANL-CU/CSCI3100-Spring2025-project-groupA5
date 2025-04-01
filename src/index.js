@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client';
 import App from './components/App';
 import reportWebVitals from './reportWebVitals';
 
+// This is how most React app starts
+// In VSCode hold Ctrl and click on a component to go there
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

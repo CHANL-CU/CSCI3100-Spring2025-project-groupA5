@@ -18,6 +18,8 @@ const StrengthBar = styled.div`
   transition: width 0.3s ease-in-out;
 `;
 
+// Usage: ./Login.js
+// Tell user strength of password when registering
 const PasswordStrengthChecker = ({ password }) => {
 
   const strength = passwordStrength(password).id;

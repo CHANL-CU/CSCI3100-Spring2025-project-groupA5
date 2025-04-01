@@ -6,6 +6,8 @@ import PacmanGame from './PacmanGame.js';
 import Leaderboard from './Leaderboard.js';
 import { FaUserCircle } from 'react-icons/fa'; // User icon
 
+// Usage: ./App.js
+// Interface for navigating PacmanGame/Leaderboard
 const User = (props) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [darkMode, setDarkMode] = useState(props.darkMode);

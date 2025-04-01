@@ -1,5 +1,7 @@
 import React from 'react';
 
+// Usage: ./PacmanGame.js
+// Display game interface given required data
 const GameUI = (props) => {
   return (
     <div>

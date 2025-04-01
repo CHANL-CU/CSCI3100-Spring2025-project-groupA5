@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import GameUI from './GameUI.js';
 
+// Usage: ./User.js
+// Implement Pac-Man game logic, pass data to GameUI for display
 const PacmanGame = () => {
   const [pacmanX, setPacmanX] = useState(1);
   const [pacmanY, setPacmanY] = useState(1);

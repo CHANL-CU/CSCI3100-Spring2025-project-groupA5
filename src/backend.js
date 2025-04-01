@@ -1,15 +1,12 @@
+/* --------------- Declarations and Configurations --------------- */
+// Express is a minimal Node.js framework
 const express = require('express');
 const app = express();
 
+// Session allows user to stay logged in
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const store = MongoStore.create({ mongoUrl: 'mongodb://127.0.0.1:27017/3100A5' });
-
-const NodeRSA = require('node-rsa');
-const key = new NodeRSA({ b: 256 });
-key.generateKeyPair();
-privateKeyPem = key.exportKey('private')
-
 app.use(session({
   secret: 'csci3100',
   store: store,
@@ -20,6 +17,13 @@ app.use(session({
   saveUninitialized: false
 }));
 
+// Encryption stuff for security
+const NodeRSA = require('node-rsa');
+const key = new NodeRSA({ b: 256 });
+key.generateKeyPair();
+privateKeyPem = key.exportKey('private')
+
+// CORS configurations
 const cors = require('cors');
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -27,18 +31,18 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Establish Mongo database connection
 const mongoose = require('mongoose');
 const { Schema } = require('mongoose');
 mongoose.connect('mongodb://127.0.0.1:27017/3100A5');
 
+// For sending license key via email
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-
 // Generate a unique license key
 const generateLicenseKey = () => {
     return crypto.randomBytes(16).toString('hex'); // random 32-character hex string
 };
-
 // Nodemailer configuration
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -48,11 +52,10 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// const convert = require('xml-js'); // xml-js Library - convert XML to JSON
-
 const { LOGIN_OK, LOGIN_NOUSER, LOGIN_WRONGPW, LOGIN_ERR, LOGIN_NOADMIN } = require('./constants.js');
 
 /* --------------- Data Schemas and Models --------------- */
+// TODO: add highScore
 const UserSchema = mongoose.Schema({
     name: { type: String, required: true, unique: true },
     password: { type: String, required: true },
@@ -85,14 +88,15 @@ db.once('open', async function () {
     .catch((err) => { console.log("Failed to read users"); }); 
 })
 
-
 /* --------------- Paths --------------- */
+// Usage: Login
 // Encrypt message
 app.post('/encrypt', async (req, res) => {
     e = { en: key.exportKey('public') }
     res.status(400).send(e);
 });
 
+// Usage: User
 // Get current user's admin status
 app.post('/auth', async (req, res) => {
     if (req.session.user) {
@@ -103,7 +107,8 @@ app.post('/auth', async (req, res) => {
     }
 });
 
-// Check for session
+// Usage: Login
+// Check if session exists
 app.post('/session', (req, res) => {
     if (req.session.user) {
         res.send({ asAdmin: req.session.asAdmin, name: req.session.user.name, darkMode: req.session.darkMode }); // Send back asAdmin if session exists
@@ -112,6 +117,7 @@ app.post('/session', (req, res) => {
     }
 });
 
+// Usage: User, Admin (defined only in App)
 // Regenerate session
 app.post('/session-regen', async (req, res) => {
     if (req.session.user) {
@@ -131,7 +137,8 @@ app.post('/session-regen', async (req, res) => {
     }
 });
 
-// Service login attempts from ./comp/Login.js
+// Usage: Login
+// Service login attempts
 app.post('/login', async (req, res) => {
     try {
         res.set('Content-Type', 'text/plain');
@@ -165,6 +172,8 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Usage: User, Admin
+// Destroy current session
 app.post('/logout', function (req, res, next) {
     // clear the user from the session object and save.
     // this will ensure that re-using the old session id
@@ -182,7 +191,8 @@ app.post('/logout', function (req, res, next) {
     })
 });
 
-// Service register attempts from ./comp/Login.js
+// Usage: Login
+// Service register attempts
 app.post('/register', async (req, res) => {
     try {
         res.set('Content-Type', 'text/plain');
@@ -225,6 +235,7 @@ app.post('/register', async (req, res) => {
     }
 });
 
+// Catches undefined requests
 app.all('/*', (req, res) => {
     res.send('Hello World!');
 });
