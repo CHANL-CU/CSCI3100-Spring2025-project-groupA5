@@ -32,6 +32,29 @@ const PacmanGame = () => {
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);
 
+  //Add Keyboard Input
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowRight') setDelta(1);
+      if (e.key === 'ArrowLeft' ) setDelta(-1);
+    };
+  
+    // Stop moving when KeyUp
+    const handleKeyUp = (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        setDelta(0);
+      }
+    };
+  
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+  
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
   return (
     <div>
       <h2>Pac-Man Game</h2>
