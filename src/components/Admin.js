@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
+import UserCRUD from './UserCRUD.js';
 import styled from 'styled-components';
 
 // Usage: ./App.js
-// Interface for user CRUD
 const Admin = (props) => {
   const sessionMade = useRef(false);
 
@@ -43,16 +43,15 @@ const Admin = (props) => {
         <nav className='container container-fluid'>
           <div className='row'>
             <div className='col' style={styles.ul}>
-              <RoundedButton><NavLink to="/events">Manage Events</NavLink></RoundedButton>
               <RoundedButton><NavLink to="/users">Manage Users</NavLink></RoundedButton>
-              <RoundedButton><NavLink to="/locations">Manage Locations</NavLink></RoundedButton>
-              <RoundedButton><NavLink to="/announcements">Manage Announcements</NavLink></RoundedButton>
             </div>
             <div className='col-3'>
               <div className='container container-fluid'>
                 <div className='row'>
                   <div className='col' style={{ padding: '10px' }}>
-                    {/*<ModeToggle adminToggle={props.adminToggle} asAdmin={true}/>*/}
+                    <button onClick={props.adminToggle} style={styles.button}>
+                      User Mode
+                    </button>
                   </div>
                   <div className='col'>
                     <button onClick={destroySession} style={styles.logoutButton}>Logout</button>
@@ -67,6 +66,7 @@ const Admin = (props) => {
           <main style={styles.main}>
             <Routes>
               <Route path="/" element={<AdminGuide />} />
+              <Route path="/users" element={<UserCRUD styles={styles} />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
@@ -76,7 +76,7 @@ const Admin = (props) => {
   );
 };
 
-// Optional: Default route component (if you want to redirect or show a default page)
+// Optional: Default route component
 const AdminGuide = () => (
   <div>
     <h2>Welcome to the Admin Panel</h2>
@@ -118,6 +118,66 @@ const styles = {
   },
   main: {
     marginTop: '20px',
+  },
+  section: {
+    marginBottom: '40px',
+  },
+  list: {
+    listStyleType: 'none',
+    padding: 0,
+  },
+  listItem: {
+    border: '1px solid #bdc3c7',
+    padding: '15px',
+    marginBottom: '10px',
+    borderRadius: '5px',
+    backgroundColor: '#ffffff',
+    overflowX: 'auto',
+  },
+  userDetails: {
+    whiteSpace: 'pre-wrap',
+  },
+  formContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  input: {
+    padding: '10px',
+    fontSize: '14px',
+    borderRadius: '4px',
+    border: '1px solid #2980b9',
+  },
+  checkboxLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+  },
+  checkbox: {
+    width: '16px',
+    height: '16px',
+  },
+  button: {
+    padding: '8px 12px',
+    backgroundColor: '#4CAF50',
+    color: '#fff',
+    border: 'none',
+    cursor: 'pointer',
+    borderRadius: '4px',
+    width: 'fit-content',
+    fontSize: '1vw',
+    maxWidth: '100%',
+  },
+  buttonDelete: {
+    padding: '8px 12px',
+    backgroundColor: '#e74c3c',
+    color: '#fff',
+    border: 'none',
+    cursor: 'pointer',
+    borderRadius: '4px',
+    marginLeft: '10px',
+    fontSize: '1vw',
+    maxWidth: '100%',
   },
 };
 
@@ -162,3 +222,4 @@ const NavLink = styled(Link)`
 `;
 
 export default Admin;
+export { Container };

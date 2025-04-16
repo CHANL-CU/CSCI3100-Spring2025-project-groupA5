@@ -235,6 +235,87 @@ app.post('/register', async (req, res) => {
     }
 });
 
+// Usage: UserCRUD
+// Fetch all user data for display
+app.get('/admin/users', async (req, res) => {
+    if (!req.session.user || !req.session.user.isAdmin) {
+      return res.status(403).send('Forbidden');
+    }
+  
+    try {
+      const users = await User.find({});
+      res.json(users);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error.');
+    }
+});
+
+// Usage: UserCRUD
+// Create a user with given data
+app.post('/admin/users', async (req, res) => {
+    if (!req.session.user || !req.session.user.isAdmin) {
+      return res.status(403).send('Forbidden');
+    }
+  
+    try {
+      const { name, password, email, isAdmin } = req.body;
+      const existing = await User.findOne({ name });
+      if (existing) {
+        return res.status(400).send('User already exists');
+      }
+  
+      const licenseKey = generateLicenseKey();
+      const newUser = new User({ name, password, email, licenseKey, isAdmin: !!isAdmin });
+      await newUser.save();
+      res.status(201).json(newUser);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error.');
+    }
+});
+
+// Usage: UserCRUD
+// Update the data of a user
+app.put('/admin/users/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { name, password, email, isAdmin } = req.body;
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).send('User not found');
+  
+      if (name !== undefined) user.name = name;
+      if (password !== undefined) user.password = password;
+      if (email !== undefined) user.email = email;
+      if (isAdmin !== undefined) user.isAdmin = isAdmin;
+      await user.save();
+      res.status(200).json(user);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error.');
+    }
+});
+
+// Usage: UserCRUD
+// Delete a user
+app.delete('/admin/users/:userId', async (req, res) => {
+    if (!req.session.user || !req.session.user.isAdmin) {
+      return res.status(403).send('Forbidden');
+    }
+  
+    try {
+      const { userId } = req.params;
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).send('User not found');
+  
+      await user.deleteOne();
+      res.status(204).send();
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error.');
+    }
+});
+
 // Catches undefined requests
 app.all('/*', (req, res) => {
     res.send('Hello World!');
