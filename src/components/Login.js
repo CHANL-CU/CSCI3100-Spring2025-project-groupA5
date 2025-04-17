@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from 'styled-components';
 import PasswordStrengthChecker from './PasswordStrengthChecker.js';
 
-const { LOGIN_OK, LOGIN_NOUSER, LOGIN_WRONGPW, LOGIN_NOADMIN, LOGIN_ERR } = require('../constants.js');
+const { LOGIN_OK, LOGIN_NOUSER, LOGIN_WRONGPW, LOGIN_WRONGKEY, LOGIN_NOADMIN, LOGIN_ERR } = require('../constants.js');
 
 // Functions for enhancing Security //
 function pemToArrayBuffer(pem) {
@@ -162,6 +162,10 @@ const Login = (props) => {
         setMsg('Wrong password!');
         setError(true);
         break;
+      case LOGIN_WRONGKEY:
+        setMsg(`Invalid license key!`);
+        setError(true);
+        break;
       case LOGIN_NOADMIN:
         setMsg(`User ${name} is not an Admin!`);
         setError(true);
@@ -277,7 +281,7 @@ const Login = (props) => {
             </>
           )}
           <Button type="submit">{isRegistering ? 'Register' : 'Login'}</Button>
-          <p style={{ textAlign: 'center', color: 'red' }}>{msg}</p>
+          <p style={error ? { textAlign: 'center', color: 'red' } : { textAlign: 'center', color: 'green' }}>{msg}</p>
         </Form>
         {!isRegistering && (
           <>

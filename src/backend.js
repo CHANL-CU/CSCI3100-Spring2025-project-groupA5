@@ -52,14 +52,14 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const { LOGIN_OK, LOGIN_NOUSER, LOGIN_WRONGPW, LOGIN_ERR, LOGIN_NOADMIN } = require('./constants.js');
+const { LOGIN_OK, LOGIN_NOUSER, LOGIN_WRONGPW, LOGIN_WRONGKEY, LOGIN_ERR, LOGIN_NOADMIN } = require('./constants.js');
 
 /* --------------- Data Schemas and Models --------------- */
-// TODO: add highScore
 const UserSchema = mongoose.Schema({
     name: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     email: { type: String, required: true, unique: true },
+    highScore: { type: Number, required: true },
     licenseKey: { type: String, required: true, unique: true },
     isAdmin: { type: Boolean, required: true },
 });
@@ -156,6 +156,9 @@ app.post('/login', async (req, res) => {
         if (!(pw == user.password)) {
         return res.status(401).send(LOGIN_WRONGPW);
         }
+        if (!(req.body.licenseKey == user.licenseKey)) {
+        return res.status(401).send(LOGIN_WRONGKEY);
+        }
 
         req.session.regenerate(function (err) {
         if (err) next(err)
@@ -210,7 +213,8 @@ app.post('/register', async (req, res) => {
         }
 
         const licenseKey = generateLicenseKey();
-        const newUser = new User({ name, password, email, licenseKey, isAdmin });
+        const highScore = 0;
+        const newUser = new User({ name, password, email, highScore, licenseKey, isAdmin });
 
         // Send license key via email
         const mailOptions = {
@@ -259,14 +263,14 @@ app.post('/admin/users', async (req, res) => {
     }
   
     try {
-      const { name, password, email, isAdmin } = req.body;
+      const { name, password, email, highScore, isAdmin } = req.body;
       const existing = await User.findOne({ name });
       if (existing) {
         return res.status(400).send('User already exists');
       }
   
       const licenseKey = generateLicenseKey();
-      const newUser = new User({ name, password, email, licenseKey, isAdmin: !!isAdmin });
+      const newUser = new User({ name, password, email, highScore, licenseKey, isAdmin: !!isAdmin });
       await newUser.save();
       res.status(201).json(newUser);
     } catch (err) {
@@ -280,13 +284,14 @@ app.post('/admin/users', async (req, res) => {
 app.put('/admin/users/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
-      const { name, password, email, isAdmin } = req.body;
+      const { name, password, email, highScore, isAdmin } = req.body;
       const user = await User.findById(userId);
       if (!user) return res.status(404).send('User not found');
   
       if (name !== undefined) user.name = name;
       if (password !== undefined) user.password = password;
       if (email !== undefined) user.email = email;
+      if (highScore !== undefined) user.highScore = highScore;
       if (isAdmin !== undefined) user.isAdmin = isAdmin;
       await user.save();
       res.status(200).json(user);

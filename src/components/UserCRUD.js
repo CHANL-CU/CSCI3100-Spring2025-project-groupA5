@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 const UserCRUD = ({ styles }) => {
     const [users, setUsers] = useState([]);
-    const [newUser, setNewUser] = useState({ name: '', password: '', email: '', isAdmin: false });
+    const [newUser, setNewUser] = useState({ name: '', password: '', email: '', highScore: 0, isAdmin: false });
     const [editingUserId, setEditingUserId] = useState(null);
     const [editUserData, setEditUserData] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
@@ -44,14 +44,14 @@ const UserCRUD = ({ styles }) => {
     };
 
     const handleCreate = async () => {
-        const { name, password, email } = newUser;
+        const { name, password, email, highScore } = newUser;
         if (!name || !password || !email) {
             alert('Please fill in all required fields.');
             return;
         }
 
         try {
-            const payload = { name, password, email, isAdmin: newUser.isAdmin };
+            const payload = { name, password, email, highScore, isAdmin: newUser.isAdmin };
             const res = await fetch('http://localhost:8080/admin/users', {
                 method: 'POST',
                 credentials: 'include',
@@ -70,7 +70,7 @@ const UserCRUD = ({ styles }) => {
 
     const startEdit = (user) => {
         setEditingUserId(user._id);
-        setEditUserData({ name: user.name, password: '', email: user.email, isAdmin: user.isAdmin });
+        setEditUserData({ name: user.name, password: '', email: user.email, highScore: user.highScore, isAdmin: user.isAdmin });
     };
 
     const cancelEdit = () => {
@@ -87,13 +87,13 @@ const UserCRUD = ({ styles }) => {
     };
 
     const saveEdit = async () => {
-        const { name } = editUserData;
+        const { name, email, highScore } = editUserData;
         if (!name) {
             alert('Username cannot be empty.');
             return;
         }
 
-        const payload = { name, isAdmin: editUserData.isAdmin };
+        const payload = { name, email, highScore, isAdmin: editUserData.isAdmin };
         if (editUserData.password.trim() !== '') {
             payload.password = editUserData.password;
         }
@@ -149,7 +149,7 @@ const UserCRUD = ({ styles }) => {
                     style={styles.input}
                 />
                 <input 
-                    type="password" 
+                    type="text" 
                     name="password" 
                     value={newUser.password}
                     onChange={handleCreateChange} 
@@ -162,6 +162,14 @@ const UserCRUD = ({ styles }) => {
                     value={newUser.email}
                     onChange={handleCreateChange} 
                     placeholder="Email" 
+                    style={styles.input}
+                />
+                <input 
+                    type="number" 
+                    name="highScore" 
+                    value={newUser.highScore}
+                    onChange={handleCreateChange} 
+                    placeholder="High Score" 
                     style={styles.input}
                 />
                 <label style={styles.checkboxLabel}>
@@ -200,7 +208,7 @@ const UserCRUD = ({ styles }) => {
                                         style={styles.input}
                                     />
                                     <input 
-                                        type="password" 
+                                        type="text" 
                                         name="password" 
                                         value={editUserData.password} 
                                         onChange={handleEditChange} 
@@ -213,6 +221,14 @@ const UserCRUD = ({ styles }) => {
                                         value={editUserData.email} 
                                         onChange={handleEditChange} 
                                         placeholder="Email" 
+                                        style={styles.input}
+                                    />
+                                    <input 
+                                        type="number" 
+                                        name="highScore" 
+                                        value={editUserData.highScore} 
+                                        onChange={handleEditChange} 
+                                        placeholder="High Score" 
                                         style={styles.input}
                                     />
                                     <label style={styles.checkboxLabel}>
@@ -233,6 +249,7 @@ const UserCRUD = ({ styles }) => {
                                     <strong>Username:</strong> {u.name} <br />
                                     <strong>Password:</strong> {u.password} <br />
                                     <strong>Email:</strong> {u.email} <br />
+                                    <strong>High Score:</strong> {u.highScore} <br />
                                     <strong>License Key {'(No Edit)'}:</strong> {u.licenseKey} <br />
                                     <strong>Admin:</strong> {u.isAdmin ? 'Yes' : 'No'} <br />
                                     <button onClick={() => startEdit(u)} style={styles.button}>Edit</button>
