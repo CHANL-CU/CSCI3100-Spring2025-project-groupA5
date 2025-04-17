@@ -239,6 +239,23 @@ app.post('/register', async (req, res) => {
     }
 });
 
+// Usage: Leaderboard
+// Fetch top 10 user data with highest highScore for display
+app.get('/leaderboard/users', async (req, res) => {
+    if (!req.session.user || !req.session.user.isAdmin) {
+      return res.status(403).send('Forbidden');
+    }
+  
+    try {
+      const users = await User.find({}).sort({ highScore: "desc" });
+      users.length = Math.min(10, users.length); // Setting the length will truncate the array
+      res.json(users);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error.');
+    }
+});
+
 // Usage: UserCRUD
 // Fetch all user data for display
 app.get('/admin/users', async (req, res) => {

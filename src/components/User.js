@@ -98,7 +98,7 @@ const User = (props) => {
         <BodyContainer darkMode={darkMode}>
           <Routes>
             <Route path="/" element={<PacmanGame />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/leaderboard" element={<Leaderboard username={props.username} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BodyContainer>
