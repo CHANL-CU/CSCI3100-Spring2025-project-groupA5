@@ -3,18 +3,16 @@ import styled from 'styled-components';
 
 // place to display game
 const GameContainer = styled.svg`
-  width: 600px;
-  height: 400px;
+  width: 80vw;
+  height: 90vh;
   background: black;
 `;
-
 
 // Usage: ./PacmanGame.js
 // Display game interface given required data
 const GameUI = ({pacmanX,
   pacmanY, map, score}) => {
   const cellSize = 20; // Pixels per grid cell
-
 
   // Render map as a grid
   const mapTiles = map.flatMap((row, y) =>
