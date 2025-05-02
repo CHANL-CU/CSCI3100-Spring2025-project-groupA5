@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import GameUI from './GameUI.js';
-import { set } from 'mongoose';
 const { GAMEMAP_1 } = require('../constants.js');
 
 // Usage: ./User.js
