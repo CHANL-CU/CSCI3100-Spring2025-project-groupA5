@@ -8,10 +8,15 @@ const GameContainer = styled.svg`
   background: black;
 `;
 
+// pacman appearance
+const PacmanAppearance = styled.circle`
+  fill: #FFFF00;
+`;
+
 // Usage: ./PacmanGame.js
 // Display game interface given required data
 const GameUI = ({pacmanX,
-  pacmanY, map, score}) => {
+  pacmanY, map}) => {
   const cellSize = 20; // Pixels per grid cell
 
   // Render map as a grid
@@ -28,6 +33,16 @@ const GameUI = ({pacmanX,
     ))
   );
   
+  // Render pacman by pacmanX and pacmanY
+  const pacmanPlace = (
+    <PacmanAppearance
+      key="pacman"
+      cx={pacmanX * cellSize + 10}
+      cy={pacmanY * cellSize + 10}
+      r={8}
+    />
+    );
+
   return (
     <div>
       <p>This is where the game is displayed.</p>
@@ -35,6 +50,8 @@ const GameUI = ({pacmanX,
       <GameContainer viewBox={`0 0 ${map[0]?.length * cellSize} ${map.length * cellSize}`}>
         {/* Render map */}
         {mapTiles}
+        {/* Render Pac-Man */}
+        {pacmanPlace}
       </GameContainer>
     </div>
   );

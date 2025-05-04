@@ -5,12 +5,14 @@ const { GAMEMAP_1 } = require('../constants.js');
 // Usage: ./User.js
 // Implement Pac-Man game logic, pass data to GameUI for display
 const PacmanGame = () => {
-  const [pacmanX, setPacmanX] = useState(1);
-  const [pacmanY, setPacmanY] = useState(1);
-  const [delta, setDelta] = useState(1);
+  const [pacmanX, setPacmanX] = useState(GAMEMAP_1.initialPacmanX);
+  const [pacmanY, setPacmanY] = useState(GAMEMAP_1.initialPacmanY);
+  const [deltaX, setDeltaX] = useState(0);
+  const [deltaY, setDeltaY] = useState(0);
   const pacmanXRef = useRef(pacmanX);
   const pacmanYRef = useRef(pacmanY);
-  const deltaRef = useRef(delta);
+  const deltaRefX = useRef(deltaX);
+  const deltaRefY = useRef(deltaY);
   const [map, setMap] = useState([]);
 
   //generate a map frame
@@ -27,62 +29,112 @@ const PacmanGame = () => {
     return {grids};
   };
 
+
+
   // ! Directly referencing states in useEffect always give their initial value
   // useRef for tracking values
   useEffect(() => {
+    // Get map once for reference to movement
+    const Map = generateMap();
+    const width = GAMEMAP_1.width;
+    const height = GAMEMAP_1.height;
+
     const interval = setInterval(() => {
+
+      if (Map.grids[pacmanYRef.current + deltaRefY.current][pacmanXRef.current + deltaRefX.current] === 1){
+        // Stop movement if hitting a wall
+        deltaRefX.current = 0;
+        deltaRefY.current = 0;
+        setDeltaX(0);
+        setDeltaY(0);
+      }
+      else {
       // Update pacmanX and pacmanY by delta every tick (example only)
       setPacmanX(currX => {
-        const newX = currX + deltaRef.current;
-        pacmanXRef.current = newX; // Update ref to the new value
+        let newX = currX + deltaRefX.current;
+        // tp
+        if (newX < 0) newX = width - 1;
+        if (newX >= width) newX = 0;
+        pacmanXRef.current = newX; // Update ref
         return newX;
       });
-      setPacmanY(currY => currY + deltaRef.current);
-      // Update delta based on the current value of pacmanX
-      setDelta(currDel => {
-        const newDel = (pacmanXRef.current > 100) ? -1 : (pacmanXRef.current <= 0 ? 1 : currDel);
-        deltaRef.current = newDel;
-        return newDel;
+      setPacmanY(currY => {
+        let newY = currY + deltaRefY.current;
+        // tp
+        if (newY < 0) newY = height - 1;
+        if (newY >= height) newY = 0;
+        pacmanYRef.current = newY; // Update ref
+        return newY;
       });
-    }, 1000 / 30); // 30 ticks per second
-
-
+      }
+      
+    }, 1000 / 5); // 30 ticks per second >> slowed to 5 ticks for easier to ply by Jamie
+    
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);
 
 
+
   //Add Keyboard Input
   useEffect(() => {
+
+    // Get map once for reference to movement
+    const Map = generateMap();
+
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight') setDelta(1);
-      if (e.key === 'ArrowLeft' ) setDelta(-1);
-    };
- 
-    // Stop moving when KeyUp
-    const handleKeyUp = (e) => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        setDelta(0);
+
+      // Prevent scrolling the browser
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
       }
+
+      let preDeltaX = deltaRefX.current;
+      let preDeltaY = deltaRefY.current;
+
+      // Left-Right 
+      if (e.key === 'ArrowRight') {
+        preDeltaX = 1;
+        preDeltaY = 0;
+      }
+      else if (e.key === 'ArrowLeft') {
+        preDeltaX = -1;
+        preDeltaY = 0;
+      }
+      // Up-Down
+      else if (e.key === 'ArrowUp') {
+        preDeltaX = 0;
+        preDeltaY = -1;
+      }
+      else if (e.key === 'ArrowDown') {
+        preDeltaX = 0;
+        preDeltaY = 1;
+      }
+
+      //update delta
+      if(Map.grids[pacmanYRef.current + preDeltaY][pacmanXRef.current + preDeltaX] !== 1) {
+        deltaRefX.current = preDeltaX;
+        deltaRefY.current = preDeltaY;
+        setDeltaX(preDeltaX);
+        setDeltaY(preDeltaY);
+      }  
     };
  
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
  
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 
-
   //initialize the game with map
   useEffect(() => {
-      const initGame = () => {
-        const Map = generateMap();
-        setMap(Map.grids);
-      };
-      initGame();
-    }, []);
+    const initGame = () => {
+      const Map = generateMap();
+      setMap(Map.grids);
+    };
+    initGame();
+  }, []);
+
 
 
   return (
