@@ -1,6 +1,6 @@
 ## Getting Started
 Install these on your device
-- Node.js v18.20.7 with npm (LTS): https://nodejs.org/en/download/
+- Node.js v22.5.0 with npm (LTS): https://nodejs.org/en/download/
 After installation, check version on terminal by: `node –v`
 - MongoDB:
 Download the installer: https://www.mongodb.com/try/download/community
