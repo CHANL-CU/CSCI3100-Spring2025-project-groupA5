@@ -37,15 +37,14 @@ const GameUI = ({pacmanX,
   const pacmanPlace = (
     <PacmanAppearance
       key="pacman"
-      cx={pacmanX * cellSize + 10}
-      cy={pacmanY * cellSize + 10}
+      cx={pacmanX + Math.floor(cellSize/2)}
+      cy={pacmanY + Math.floor(cellSize/2)}
       r={8}
     />
     );
 
   return (
     <div>
-      <p>This is where the game is displayed.</p>
       <p>Pacman is now at [{pacmanX}, {pacmanY}]!</p>
       <GameContainer viewBox={`0 0 ${map[0]?.length * cellSize} ${map.length * cellSize}`}>
         {/* Render map */}
