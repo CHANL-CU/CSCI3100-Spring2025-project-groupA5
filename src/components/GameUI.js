@@ -1,23 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
-// place to display game
+// Place to display game
 const GameContainer = styled.svg`
   width: 80vw;
   height: 90vh;
   background: black;
 `;
 
-// pacman appearance
-const PacmanAppearance = styled.circle`
-  fill: #FFFF00;
+const Pacman = styled.path`
+  fill: #FFFF00; // Yellow color for Pac-Man 
+  transition: d 0.2s ease-in-out;
 `;
 
-// Usage: ./PacmanGame.js
 // Display game interface given required data
-const GameUI = ({pacmanX,
-  pacmanY, map}) => {
+const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, score }) => {
   const cellSize = 20; // Pixels per grid cell
+  const pacmanAngle = useRef(359.9); // Initial pacman angle 
+
+  // Animate Pac-Man's mouth opening and closing
+  useEffect(() => {
+    const interval = setInterval(() => {
+      pacmanAngle.current = pacmanAngle.current === 320 ? 359.9 : 320; // Pacman animation
+    }, 300);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Determine direction and corresponding angle offset
+  let dir = 0;
+  if (dx === 0) {
+    dir = dy === 1 ? 90 : 270; // Down or up
+  } else {
+    dir = dx === 1 ? 0 : 180; // Right or left
+  }
+
+  // Calculate Pac-Man's path based on the angle
+  const calculatePacmanPath = () => {
+    const radius = 8; // Radius for Pac-Man
+    let angle = pacmanAngle.current;
+    if (!pacmanMoving) {
+      angle = 359.9;
+    }
+    const startX = radius * Math.cos(Math.PI * (angle / 180));
+    const startY = radius * Math.sin(Math.PI * (angle / 180));
+    const endX = radius * Math.cos(Math.PI * (-angle / 180));
+    const endY = radius * Math.sin(Math.PI * (-angle / 180));
+    
+    // Create a path for Pac-Man
+    return `M 0 0 L ${startX} ${startY} A ${radius} ${radius} 0 1 0 ${endX} ${endY} Z`;
+  };
+
+  // Calculate the pacman path based on direction
+  const pacmanPath = calculatePacmanPath();
 
   // Render map as a grid
   const mapTiles = map.flatMap((row, y) =>
@@ -28,33 +62,35 @@ const GameUI = ({pacmanX,
         y={y * cellSize}
         width={cellSize}
         height={cellSize}
-        fill={cell === 1 ? "blue" : "black" } //blue colour if wall, else,then black
+        fill={cell === 1 ? "blue" : "black"} // blue for wall, else black
       />
     ))
   );
   
+  const dotElements = dots.map((dot, index) => (
+    <circle key={index} cx={dot.x * cellSize + cellSize / 2} cy={dot.y * cellSize + cellSize / 2} r={2} fill="yellow" />
+  ));
+
   // Render pacman by pacmanX and pacmanY
   const pacmanPlace = (
-    <PacmanAppearance
-      key="pacman"
-      cx={pacmanX + Math.floor(cellSize/2)}
-      cy={pacmanY + Math.floor(cellSize/2)}
-      r={8}
-    />
-    );
+    <Pacman d={pacmanPath}
+      transform={`translate(${pacmanX + Math.floor(cellSize / 2)}, ${pacmanY + Math.floor(cellSize / 2)}) rotate(${dir})`} />
+  );
 
   return (
-    <div>
-      <p>Pacman is now at [{pacmanX}, {pacmanY}]!</p>
-      <GameContainer viewBox={`0 0 ${map[0]?.length * cellSize} ${map.length * cellSize}`}>
-        {/* Render map */}
-        {mapTiles}
-        {/* Render Pac-Man */}
-        {pacmanPlace}
-      </GameContainer>
-    </div>
+    <GameContainer viewBox={`0 0 ${map[0]?.length * cellSize} ${map.length * cellSize}`}>
+      {/* Render map */}
+      {mapTiles}
+      {/* Render dots */}
+      {dotElements}
+      {/* Render Pac-Man */}
+      {pacmanPlace}
+      {/* Render score */}
+      <text x={map[0]?.length * cellSize - 60} y={20} fill="white" fontFamily="'Press Start 2P', cursive" fontSize="20">
+        Score: {score}
+      </text>
+    </GameContainer>
   );
 };
-
 
 export default GameUI;

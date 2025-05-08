@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import GameUI from './GameUI.js';
-const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GAMEMAP_1 } = require('../constants.js');
+const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GAMEMAP_1, PICKUP_SCORE } = require('../constants.js');
 
+// Usage: ./User.js
+// Implement Pac-Man game logic, pass data to GameUI for display
 const PacmanGame = () => {
   // ! Directly referencing states in useEffect always give their initial value
   // useRef for tracking values
@@ -13,8 +15,10 @@ const PacmanGame = () => {
   const deltaYRef = useRef(0);
   const inputMemory = useRef(0);
   const inputDir = useRef(NODIR);
-  // const [map, setMap] = useState({width: 0, height: 0, grids: []});
   const map = useRef({width: 0, height: 0, grids: []});
+  const score = useRef(0);
+  const dots = useRef([]);
+  const pacmanMoving = useRef(false);
 
   const generateMap = () => {
     const { width, height, map } = GAMEMAP_1;
@@ -24,13 +28,32 @@ const PacmanGame = () => {
     return { width, height, grids };
   };
 
+  const generateDots = () => {
+    if (!map.current || map.current.length === 0) {
+      console.error("Error: Map is undefined or empty!");
+      return [];
+    }
+    const { width, height, grids } = map.current;
+    const newDots = [];
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (grids[y][x] !== 1 && (x !== pacmanX || y !== pacmanY)) { 
+          // Place dot on non-wall tiles
+          newDots.push({ x, y });
+        }
+      }
+    }
+    return newDots;
+  };
+
   const getPacmanGrids = (x, y) => {
     if (x % GRID_SIDE !== 0) return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}, 
                                     {x: Math.floor(x/GRID_SIDE)+1, y: Math.floor(y/GRID_SIDE)}];
     if (y % GRID_SIDE !== 0) return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}, 
                                     {x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)+1}];
     return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}];
-  }
+  };
 
   const pacmanSteer = () => {
     const pacmanGrids = getPacmanGrids(pacmanXRef.current, pacmanYRef.current);
@@ -57,7 +80,7 @@ const PacmanGame = () => {
       if (pacmanGrids[0].y === pacmanGrids[1].y && newDeltaY !== 0) return;
       if (pacmanGrids[0].x === pacmanGrids[1].x && newDeltaX !== 0) return;
     } else {
-      // TODO: Invalid if running into walls
+      // Invalid if running into walls
       const next = getPacmanGrids(pacmanXRef.current+newDeltaX, pacmanYRef.current+newDeltaY);
       const grids = map.current.grids;
       if (grids[next[0].y][next[0].x] === 1 || grids[next[1].y][next[1].x] === 1) {
@@ -65,12 +88,14 @@ const PacmanGame = () => {
         return;
       }
     }
+    pacmanMoving.current = true;
     deltaXRef.current = newDeltaX;
     deltaYRef.current = newDeltaY;
-  }
+  };
 
   const pacmanMove = () => {
-    if (map.current == []) return;
+    if (!pacmanMoving.current) return;
+    if (!map.current) return;
     if (deltaXRef.current === 0 && deltaYRef.current === 0) return;
     const grids = map.current.grids;
     const width = map.current.width;
@@ -86,16 +111,17 @@ const PacmanGame = () => {
     if (getPacmanGrids(newX, newY).length === 1) {
       const next = getPacmanGrids(newX+deltaXRef.current, newY+deltaYRef.current);
       if (grids[next[0].y][next[0].x] === 1 || grids[next[1].y][next[1].x] === 1) {
-        deltaXRef.current = 0;
-        deltaYRef.current = 0;
+        // deltaXRef.current = 0;
+        // deltaYRef.current = 0;
         console.log("MOVE INTO WALLS!");
+        pacmanMoving.current = false;
       }
     }
     setPacmanX(newX);
     setPacmanY(newY);
     pacmanXRef.current = newX;
     pacmanYRef.current = newY;
-  }
+  };
 
   const handle_movements = () => {
     pacmanMove();
@@ -110,17 +136,28 @@ const PacmanGame = () => {
       g.move();
     }
     */
-  }
+  };
 
   const handle_collisions = () => {
-    // TODO
-  }
+    // pick-up collisions
+    for (let grid of getPacmanGrids(pacmanXRef.current, pacmanYRef.current)) {
+      if (dots.current.some(dot => dot.x === grid.x && dot.y === grid.y)) { // Within grid with pick-up
+        score.current += PICKUP_SCORE;
+        dots.current = dots.current.filter(dot => dot.x !== grid.x || dot.y !== grid.y);
+        console.log("PICKUP");
+      }
+    }
 
-  // Setup Game Logic to run per tick
+    // TODO
+  };
+
+  // Game Initialization
   useEffect(() => {
     // Init game map
     map.current = generateMap();
+    dots.current = generateDots();
     
+    // Setup Game Logic to run per tick
     const interval = setInterval(() => {
       handle_movements()
 	    handle_collisions()
@@ -161,7 +198,10 @@ const PacmanGame = () => {
 
   return (
     <div>
-      <GameUI pacmanX={pacmanX} pacmanY={pacmanY} map={map.current.grids} />
+      <GameUI pacmanX={pacmanX} pacmanY={pacmanY}
+      map={map.current.grids} dots={dots.current}
+      dx={deltaXRef.current} dy={deltaYRef.current} pacmanMoving={pacmanMoving.current}
+      score={score.current}/>
     </div>
   );
 };
