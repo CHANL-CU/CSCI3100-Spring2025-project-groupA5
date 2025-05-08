@@ -19,7 +19,7 @@ const PacmanGame = () => {
   const score = useRef(0);
   const dots = useRef([]);
   const pacmanMoving = useRef(false);
-  {/* <mark style="background-color: #FFFF00;"> */ }
+  {/* <mark style="background-color: #FFFF00;"> */}
   const [ghosts, setGhosts] = useState([]); // State to hold the ghosts
   {/* </mark> */}
 
@@ -130,7 +130,7 @@ const PacmanGame = () => {
     pacmanYRef.current = newY;
   };
 
-    {/* <mark style="background-color: #FFFF00;"> */ }
+    {/* <mark style="background-color: #FFFF00;"> */}
     // Ghost logic (3a, 3b, 3c, 3d)
     const moveGhosts = () => {
         setGhosts(prevGhosts => {
@@ -163,7 +163,7 @@ const PacmanGame = () => {
                         case DOWN: newDirection = UP; break;
                         case LEFT: newDirection = RIGHT; break;
                         case RIGHT: newDirection = LEFT; break;
-                        default: newDirection = NODIR;
+                        default: newDirection = NODIR; //Added default case
                     }
                 }
 
@@ -175,6 +175,7 @@ const PacmanGame = () => {
                     case DOWN: newY += 1; break;
                     case LEFT: newX -= 1; break;
                     case RIGHT: newX += 1; break;
+                    default: break; // Added default case
                 }
 
                 //Wall collision is handled by possibleDirections check
@@ -197,12 +198,12 @@ const PacmanGame = () => {
     }
     inputMemory.current -= 1;
 
-    {/* <mark style="background-color: #FFFF00;"> */ }
+    {/* <mark style="background-color: #FFFF00;"> */}
     moveGhosts();
     {/* </mark> */}
   };
 
-    {/* <mark style="background-color: #FFFF00;"> */ }
+    {/* <mark style="background-color: #FFFF00;"> */}
     // 3e: Collision detection
     const checkCollisions = () => {
         ghosts.forEach(ghost => {
@@ -257,15 +258,17 @@ const PacmanGame = () => {
     
     // Setup Game Logic to run per tick
     const interval = setInterval(() => {
-      handle_movements()
-	    handle_collisions()
+      handle_movements();
+	    handle_collisions();
         {/* <mark style="background-color: #FFFF00;"> */}
         checkCollisions();
         {/* </mark> */}
     }, 1000 / 60); // 60 ticks per second
 
     return () => clearInterval(interval);
-  }, []);
+    {/* <mark style="background-color: #FFFF00;"> */}
+  }, [checkCollisions, generateDots, handle_collisions, handle_movements]); // Added dependencies
+    {/* </mark> */}
 
   // Add Keyboard Input
   useEffect(() => {
