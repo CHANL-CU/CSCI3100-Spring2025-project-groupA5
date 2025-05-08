@@ -19,6 +19,9 @@ const PacmanGame = () => {
   const score = useRef(0);
   const dots = useRef([]);
   const pacmanMoving = useRef(false);
+  {/* <mark style="background-color: #FFFF00;"> */ }
+  const [ghosts, setGhosts] = useState([]); // State to hold the ghosts
+  {/* </mark> */}
 
   const generateMap = () => {
     const { width, height, map } = GAMEMAP_1;
@@ -54,6 +57,10 @@ const PacmanGame = () => {
                                     {x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)+1}];
     return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}];
   };
+
+  const getGhostGrids = (x, y) => {
+      return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}];
+  }
 
   const pacmanSteer = () => {
     const pacmanGrids = getPacmanGrids(pacmanXRef.current, pacmanYRef.current);
@@ -123,6 +130,66 @@ const PacmanGame = () => {
     pacmanYRef.current = newY;
   };
 
+    {/* <mark style="background-color: #FFFF00;"> */ }
+    // Ghost logic (3a, 3b, 3c, 3d)
+    const moveGhosts = () => {
+        setGhosts(prevGhosts => {
+            return prevGhosts.map(ghost => {
+                const possibleDirections = [];
+                const currentGrid = getGhostGrids(ghost.x, ghost.y)[0];
+
+                // Check for available directions (no reversing)
+                if (ghost.direction !== DOWN && map.current.grids[currentGrid.y - 1]?.[currentGrid.x] !== 1) {
+                    possibleDirections.push(UP);
+                }
+                if (ghost.direction !== UP && map.current.grids[currentGrid.y + 1]?.[currentGrid.x] !== 1) {
+                    possibleDirections.push(DOWN);
+                }
+                if (ghost.direction !== RIGHT && map.current.grids[currentGrid.y]?.[currentGrid.x - 1] !== 1) {
+                    possibleDirections.push(LEFT);
+                }
+                if (ghost.direction !== LEFT && map.current.grids[currentGrid.y]?.[currentGrid.x + 1] !== 1) {
+                    possibleDirections.push(RIGHT);
+                }
+
+                // Choose a random direction
+                let newDirection = NODIR;
+                if (possibleDirections.length > 0) {
+                    newDirection = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
+                } else {
+                    // No valid direction, reverse!
+                    switch (ghost.direction) {
+                        case UP: newDirection = DOWN; break;
+                        case DOWN: newDirection = UP; break;
+                        case LEFT: newDirection = RIGHT; break;
+                        case RIGHT: newDirection = LEFT; break;
+                        default: newDirection = NODIR;
+                    }
+                }
+
+                let newX = ghost.x;
+                let newY = ghost.y;
+
+                switch (newDirection) {
+                    case UP: newY -= 1; break;
+                    case DOWN: newY += 1; break;
+                    case LEFT: newX -= 1; break;
+                    case RIGHT: newX += 1; break;
+                }
+
+                //Wall collision is handled by possibleDirections check
+
+                return {
+                    ...ghost,
+                    x: newX,
+                    y: newY,
+                    direction: newDirection,
+                };
+            });
+        });
+    };
+    {/* </mark> */}
+
   const handle_movements = () => {
     pacmanMove();
     if (inputMemory.current > 0) {
@@ -130,13 +197,32 @@ const PacmanGame = () => {
     }
     inputMemory.current -= 1;
 
-    /* TODO: Ghosts
-    for (g of ghosts) {
-      g.routeAI(pman.pos, map); 
-      g.move();
-    }
-    */
+    {/* <mark style="background-color: #FFFF00;"> */ }
+    moveGhosts();
+    {/* </mark> */}
   };
+
+    {/* <mark style="background-color: #FFFF00;"> */ }
+    // 3e: Collision detection
+    const checkCollisions = () => {
+        ghosts.forEach(ghost => {
+            const pacmanGrid = getPacmanGrids(pacmanXRef.current, pacmanYRef.current)[0];
+            const ghostGrid = getGhostGrids(ghost.x, ghost.y)[0];
+
+            if (pacmanGrid.x === ghostGrid.x && pacmanGrid.y === ghostGrid.y) {
+                alert("Game Over!");
+                // Reset the game (example)
+                setPacmanX(GAMEMAP_1.initialPacmanX);
+                setPacmanY(GAMEMAP_1.initialPacmanY);
+                pacmanXRef.current = GAMEMAP_1.initialPacmanX;
+                pacmanYRef.current = GAMEMAP_1.initialPacmanY;
+                setGhosts(ghosts.map((ghost, index) => ({...ghost, x: 10 + index, y: 10, direction: NODIR})));
+                score.current = 0;
+                dots.current = generateDots();
+            }
+        });
+    };
+    {/* </mark> */}
 
   const handle_collisions = () => {
     // pick-up collisions
@@ -148,7 +234,9 @@ const PacmanGame = () => {
       }
     }
 
+    {/* <mark style="background-color: #FFFF00;"> */}
     // TODO
+    {/* </mark> */}
   };
 
   // Game Initialization
@@ -156,11 +244,24 @@ const PacmanGame = () => {
     // Init game map
     map.current = generateMap();
     dots.current = generateDots();
+      {/* <mark style="background-color: #FFFF00;"> */}
+      // 3f: Initialize ghosts
+      const initialGhosts = [
+          { x: 10, y: 10, direction: NODIR },
+          { x: 11, y: 10, direction: NODIR },
+          { x: 10, y: 11, direction: NODIR },
+          { x: 11, y: 11, direction: NODIR },
+      ];
+      setGhosts(initialGhosts);
+      {/* </mark> */}
     
     // Setup Game Logic to run per tick
     const interval = setInterval(() => {
       handle_movements()
 	    handle_collisions()
+        {/* <mark style="background-color: #FFFF00;"> */}
+        checkCollisions();
+        {/* </mark> */}
     }, 1000 / 60); // 60 ticks per second
 
     return () => clearInterval(interval);
@@ -196,12 +297,32 @@ const PacmanGame = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+    {/* <mark style="background-color: #FFFF00;"> */}
+    // 3a: Render Ghosts
+    const renderGhosts = () => {
+        return ghosts.map((ghost, index) => (
+            <div key={index} style={{
+                position: 'absolute',
+                left: ghost.x * GRID_SIDE,
+                top: ghost.y * GRID_SIDE,
+                width: GRID_SIDE,
+                height: GRID_SIDE,
+                backgroundColor: 'red',
+                borderRadius: '100%',
+            }}></div>
+        ));
+    };
+    {/* </mark> */}
+
   return (
     <div>
       <GameUI pacmanX={pacmanX} pacmanY={pacmanY}
       map={map.current.grids} dots={dots.current}
       dx={deltaXRef.current} dy={deltaYRef.current} pacmanMoving={pacmanMoving.current}
       score={score.current}/>
+        {/* <mark style="background-color: #FFFF00;"> */}
+        {renderGhosts()}
+        {/* </mark> */}
     </div>
   );
 };
