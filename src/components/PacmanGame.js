@@ -48,19 +48,19 @@ const PacmanGame = () => {
     return newDots;
   }, [map, pacmanX, pacmanY]);
 
-  const getPacmanGrids = (x, y) => {
+  const getPacmanGrids = useCallback((x, y) => {
     if (x % GRID_SIDE !== 0) return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}, 
                                     {x: Math.floor(x/GRID_SIDE)+1, y: Math.floor(y/GRID_SIDE)}];
     if (y % GRID_SIDE !== 0) return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}, 
                                     {x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)+1}];
     return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}];
-  };
+  }, []);
 
-  const getGhostGrids = (x, y) => {
-      return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}];
-  }
+  const getGhostGrids = useCallback((x, y) => {
+    return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}];
+  }, []);
 
-  const pacmanSteer = () => {
+  const pacmanSteer = useCallback(() => {
     const pacmanGrids = getPacmanGrids(pacmanXRef.current, pacmanYRef.current);
     let newDeltaX = 0;
     let newDeltaY = 0;
@@ -96,9 +96,9 @@ const PacmanGame = () => {
     pacmanMoving.current = true;
     deltaXRef.current = newDeltaX;
     deltaYRef.current = newDeltaY;
-  };
+  }, [getPacmanGrids, pacmanXRef, pacmanYRef, inputDir, map, pacmanMoving, deltaXRef, deltaYRef]);
 
-  const pacmanMove = () => {
+  const pacmanMove = useCallback(() => {
     if (!pacmanMoving.current) return;
     if (!map.current) return;
     if (deltaXRef.current === 0 && deltaYRef.current === 0) return;
@@ -126,10 +126,10 @@ const PacmanGame = () => {
     setPacmanY(newY);
     pacmanXRef.current = newX;
     pacmanYRef.current = newY;
-  };
+  }, [pacmanMoving, map, deltaXRef, deltaYRef, pacmanXRef, pacmanYRef, getPacmanGrids, setPacmanX, setPacmanY]);
 
     // Ghost logic (3a, 3b, 3c, 3d)
-    const moveGhosts = () => {
+    const moveGhosts = useCallback(() => {
         setGhosts(prevGhosts => {
             return prevGhosts.map(ghost => {
                 const possibleDirections = [];
@@ -185,7 +185,7 @@ const PacmanGame = () => {
                 };
             });
         });
-    };
+    }, [getGhostGrids, map]);
 
   const handle_movements = useCallback(() => {
     pacmanMove();
@@ -214,7 +214,7 @@ const PacmanGame = () => {
                 dots.current = generateDots();
             }
         });
-    }, [ghosts, getPacmanGrids, getGhostGrids, setPacmanX, GAMEMAP_1.initialPacmanX, setPacmanY, setGhosts, generateDots]);
+    }, [ghosts, getPacmanGrids, getGhostGrids, setPacmanX, setPacmanY, setGhosts, generateDots]);
 
   const handle_collisions = useCallback(() => {
     // pick-up collisions
@@ -227,7 +227,6 @@ const PacmanGame = () => {
     }
   }, [pacmanXRef, pacmanYRef, dots, getPacmanGrids]);
 
-  // Game Initialization
   useEffect(() => {
     // Init game map
     map.current = generateMap();
