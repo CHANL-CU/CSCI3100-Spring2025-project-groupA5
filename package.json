@@ -13,6 +13,7 @@
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "framer-motion": "^12.10.1",
     "mongoose": "^8.11.0",
     "node-rsa": "^1.1.1",
     "nodemailer": "^6.10.0",

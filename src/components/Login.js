@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import styled from 'styled-components';
+import styles from './styles/Login.module.css';
+import { motion } from "framer-motion";
 import PasswordStrengthChecker from './PasswordStrengthChecker.js';
 
 const { LOGIN_OK, LOGIN_NOUSER, LOGIN_WRONGPW, LOGIN_WRONGKEY, LOGIN_NOADMIN, LOGIN_ERR } = require('../constants.js');
@@ -216,181 +217,145 @@ const Login = (props) => {
   };
 
   return (
-    <Container>
-      <FormContainer>
-        <Title>{isRegistering ? 'Register' : 'Login'}</Title>
-        <SubTitle>
-          {asAdmin ? (
-            <ToggleButton onClick={() => { setAsAdmin(false); setMsg(''); setError(false); }}>As User</ToggleButton>
-          ) : (
-            'As User'
-          )}
-          {asAdmin ? 'As Admin' : <ToggleButton onClick={() => { setAsAdmin(true); setMsg(''); setError(false); }}>As Admin</ToggleButton>}
-        </SubTitle>
+    <div className={styles.container}>
+      <motion.div 
+        className={styles.formContainer}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className={styles.pacmanLogo}>
+          <div className={styles.pacman}></div>
+          <div className={styles.dots}>
+            <div className={styles.dot}></div>
+            <div className={styles.dot}></div>
+            <div className={styles.dot}></div>
+          </div>
+        </div>
+
+        <h1 className={styles.title}>
+          {isRegistering ? 'Register' : 'Login'}
+        </h1>
+
+        <div className={styles.modeToggle}>
+          <button 
+            className={`${styles.toggleBtn} ${!asAdmin ? styles.active : ''}`}
+            onClick={() => { setAsAdmin(false); setMsg(''); setError(false); }}
+          >
+            User Mode
+          </button>
+          <button 
+            className={`${styles.toggleBtn} ${asAdmin ? styles.active : ''}`}
+            onClick={() => { setAsAdmin(true); setMsg(''); setError(false); }}
+          >
+            Admin Mode
+          </button>
+        </div>
 
         {isRegistering && (
-          <ToggleButton onClick={() => { setIsRegistering(false); setMsg(''); setError(false); }}>Back to Login</ToggleButton>
+          <button 
+            className={styles.backButton}
+            onClick={() => { setIsRegistering(false); setMsg(''); setError(false); }}
+          >
+            Back to Login
+          </button>
         )}
-        <Form id="postForm" onSubmit={submit}>
-          <Input type="text" id="name" name="name" placeholder="Username" required />
-          <Input onChange={handlePasswordChange} type="password" id="password" name="password" placeholder="Password" required />  
+
+        <form className={styles.form} onSubmit={submit}>
+          <div className={styles.inputGroup}>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              placeholder="Username"
+              className={styles.input}
+              required 
+            />
+          </div>
+
+          <div className={styles.inputGroup}>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              placeholder="Password"
+              className={styles.input}
+              onChange={handlePasswordChange}
+              required 
+            />
+          </div>
+
           {isRegistering ? (
-            <>
-              <Input
+            <div className={styles.inputGroup}>
+              <input
                 type="email"
                 id="email"
                 name="email"
                 placeholder="Email Address"
+                className={styles.input}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-            </>
+            </div>
           ) : (
-            <Input
-              type="text"
-              id="licenseKey"
-              name="licenseKey"
-              placeholder="License Key"
-              value={licenseKey}
-              onChange={(e) => setLicenseKey(e.target.value)}
-              required
-            />
+            <div className={styles.inputGroup}>
+              <input
+                type="text"
+                id="licenseKey"
+                name="licenseKey"
+                placeholder="License Key"
+                className={styles.input}
+                value={licenseKey}
+                onChange={(e) => setLicenseKey(e.target.value)}
+                required
+              />
+            </div>
           )}
+
           {isRegistering && (
-            <>
-              <PasswordStrengthChecker password={password} />
-              <PasswordRequirements>
-                <Requirement>
-                  <RequirementIcon met={password.length >= 8} />
-                  At least 8 characters
-                </Requirement>
-                <Requirement>
-                  <RequirementIcon met={/[a-z]/.test(password)} />
-                  At least one lowercase letter
-                </Requirement>
-                <Requirement>
-                  <RequirementIcon met={/[A-Z]/.test(password)} />
-                  At least one uppercase letter
-                </Requirement>
-                <Requirement>
-                  <RequirementIcon met={/\d/.test(password)} />
-                  At least one number
-                </Requirement>
-              </PasswordRequirements>
-            </>
+            <div className={styles.passwordRequirements}>
+              <div className={`${styles.requirement} ${password.length >= 8 ? styles.met : ''}`}>
+                <span className={styles.checkmark}>✓</span>
+                At least 8 characters
+              </div>
+              <div className={`${styles.requirement} ${/[a-z]/.test(password) ? styles.met : ''}`}>
+                <span className={styles.checkmark}>✓</span>
+                One lowercase letter
+              </div>
+              <div className={`${styles.requirement} ${/[A-Z]/.test(password) ? styles.met : ''}`}>
+                <span className={styles.checkmark}>✓</span>
+                One uppercase letter
+              </div>
+              <div className={`${styles.requirement} ${/\d/.test(password) ? styles.met : ''}`}>
+                <span className={styles.checkmark}>✓</span>
+                One number
+              </div>
+            </div>
           )}
-          <Button type="submit">{isRegistering ? 'Register' : 'Login'}</Button>
-          <p style={error ? { textAlign: 'center', color: 'red' } : { textAlign: 'center', color: 'green' }}>{msg}</p>
-        </Form>
+
+          <button type="submit" className={styles.submitButton}>
+            {isRegistering ? 'Create Account' : 'Login'}
+          </button>
+
+          {msg && (
+            <p className={`${styles.message} ${error ? styles.error : styles.success}`}>
+              {msg}
+            </p>
+          )}
+        </form>
+
         {!isRegistering && (
-          <>
-            <br />
-            <ToggleButton onClick={() => { setIsRegistering(true); setMsg(''); setError(false); }}>Register Now</ToggleButton>
-          </>
+          <button 
+            className={styles.registerLink}
+            onClick={() => { setIsRegistering(true); setMsg(''); setError(false); }}
+          >
+            Need an account? Register Now
+          </button>
         )}
-      </FormContainer>
-    </Container>
+      </motion.div>
+    </div>
   );
 };
-
-const PasswordRequirements = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const Requirement = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-`;
-
-const RequirementIcon = styled.span`
-  display: inline-block;
-  width: 1rem;
-  height: 1rem;
-  border-radius: 50%;
-  background-color: ${props => (props.met ? '#4dff4d' : '#ccc')};
-  margin-right: 0.5rem;
-`;
-
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #fff3e0; /* Light orange background */
-`;
-
-const FormContainer = styled.div`
-  background-color: #ffffff;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
-  width: 100%;
-`;
-
-const Title = styled.h1`
-  font-size: 2rem;
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: #ff5722; /* Vibrant orange */
-`;
-
-const SubTitle = styled.h2`
-  font-size: 1.2rem;
-  text-align: center;
-  margin-bottom: 1rem;
-  color: #333;
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Input = styled.input`
-  padding: 0.8rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ffab40; /* Orange border */
-  border-radius: 0.25rem;
-  font-size: 1rem;
-  background-color: #fff;
-  color: #333;
-
-  &:focus {
-    outline: none;
-    border-color: #ff5722; /* Darker orange on focus */
-    box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.25);
-  }
-`;
-
-const Button = styled.button`
-  padding: 0.8rem 1.2rem;
-  background-color: #ff5722; /* Primary vibrant orange */
-  color: #ffffff;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  font-size: 1rem;
-
-  &:hover {
-    background-color: #e64a19; /* Darker shade for hover */
-  }
-`;
-
-const ToggleButton = styled(Button)`
-  background-color: transparent;
-  color: #ff5722; /* Primary orange */
-  font-size: 0.7rem;
-  font-weight: bold; 
-  border: 1px solid #ff5722;
-  margin: 10px;
-  &:hover {
-    background-color: #ff5722;
-    color: #ffffff;
-  }
-`;
 
 export default Login;

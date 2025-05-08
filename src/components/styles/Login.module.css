@@ -1,0 +1,263 @@
+:root {
+    --pacman-yellow: #FFEB3B;
+    --ghost-blue: #2196F3;
+    --ghost-red: #f44336;
+    --ghost-pink: #E91E63;
+    --ghost-orange: #FF9800;
+    --background: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #b3b3b3;
+}
+
+.container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--background);
+    padding: 1rem;
+}
+
+.formContainer {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pacmanLogo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.pacman {
+    width: 0;
+    height: 0;
+    border-right: 30px solid transparent;
+    border-top: 30px solid var(--pacman-yellow);
+    border-left: 30px solid var(--pacman-yellow);
+    border-bottom: 30px solid var(--pacman-yellow);
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    animation: eat 0.7s infinite;
+}
+
+.dots {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background: var(--pacman-yellow);
+    border-radius: 50%;
+    margin: 0 8px;
+    animation: disappear 1.4s infinite;
+}
+
+.title {
+    color: var(--text-primary);
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-weight: 700;
+}
+
+.modeToggle {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.toggleBtn {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggleBtn.active {
+    background: var(--pacman-yellow);
+    color: var(--background);
+    border-color: var(--pacman-yellow);
+}
+
+.inputGroup {
+    margin-bottom: 1.5rem;
+}
+
+.input {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--pacman-yellow);
+    box-shadow: 0 0 0 2px rgba(255, 235, 59, 0.2);
+}
+
+.submitButton {
+    width: 100%;
+    padding: 1rem;
+    background: var(--pacman-yellow);
+    color: var(--background);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submitButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 235, 59, 0.3);
+}
+
+.message {
+    text-align: center;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+}
+
+.error {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+}
+
+.success {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+}
+
+.passwordRequirements {
+    margin-bottom: 1.5rem;
+}
+
+.requirement {
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.requirement.met {
+    color: #4CAF50;
+}
+
+.checkmark {
+    margin-right: 0.5rem;
+    opacity: 0.5;
+}
+
+.requirement.met .checkmark {
+    opacity: 1;
+}
+
+@keyframes eat {
+    0% { transform: rotate(0); }
+    50% { transform: rotate(45deg); }
+    100% { transform: rotate(0); }
+}
+
+@keyframes disappear {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@media (max-width: 480px) {
+    .formContainer {
+        padding: 1.5rem;
+    }
+
+    .title {
+        font-size: 1.5rem;
+    }
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.backButton:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-color: var(--pacman-yellow);
+}
+
+.backButton::before {
+    content: '←';
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.backButton:hover::before {
+    transform: translateX(-4px);
+}
+
+.registerLink {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    background: transparent;
+    border: 1px solid var(--pacman-yellow);
+    border-radius: 8px;
+    color: var(--pacman-yellow);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    text-align: center;
+}
+
+.registerLink:hover {
+    background: var(--pacman-yellow);
+    color: var(--background);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 235, 59, 0.2);
+}
+
+/* Add hover focus and active states for better accessibility */
+.backButton:focus,
+.registerLink:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 235, 59, 0.3);
+}
+
+.backButton:active,
+.registerLink:active {
+    transform: translateY(1px);
+}
