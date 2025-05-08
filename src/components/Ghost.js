@@ -1,98 +1,125 @@
+// Ghost.js
 import React, { useState, useEffect, useRef } from 'react';
-import GameUI from './GameUI.js';
-const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GAMEMAP_1, PICKUP_SCORE } = require('../constants.js');
-const { Ghost, initializeGhosts } = require('./Ghost.js');
+import { GRID_SIDE, NODIR, UP, DOWN, LEFT, RIGHT } from '../constants.js';
 
-const PacmanGame = () => {
-  const [pacmanX, setPacmanX] = useState(GAMEMAP_1.initialPacmanX);
-  const [pacmanY, setPacmanY] = useState(GAMEMAP_1.initialPacmanY);
-  const pacmanXRef = useRef(pacmanX);
-  const pacmanYRef = useRef(pacmanY);
-  const deltaXRef = useRef(0);
-  const deltaYRef = useRef(0);
-  const inputMemory = useRef(0);
-  const inputDir = useRef(NODIR);
-  const map = useRef({ width: 0, height: 0, grids: [] });
-  const score = useRef(0);
-  const dots = useRef([]);
-  const pacmanMoving = useRef(false);
+const Ghost = ({ id, initialX, initialY, map, pacmanX, pacmanY, onCollide }) => {
+  const [ghostX, setGhostX] = useState(initialX);
+  const [ghostY, setGhostY] = useState(initialY);
+  const ghostXRef = useRef(ghostX);
+  const ghostYRef = useRef(ghostY);
+  const [direction, setDirection] = useState(NODIR);
+  const directionRef = useRef(direction);
+  const speed = 1; // Adjust as needed
 
-  const ghosts = useRef([]);
+  useEffect(() => {
+    ghostXRef.current = ghostX;
+    ghostYRef.current = ghostY;
+    directionRef.current = direction;
+  }, [ghostX, ghostY, direction]);
 
-  const generateMap = () => {
-    const { width, height, map } = GAMEMAP_1;
-    const grids = Array.from({ length: height }, (_, y) =>
-      Array.from({ length: width }, (_, x) => +map[x + y * width])
+  // Function to check for collisions with Pac-Man
+  const checkCollision = () => {
+    const distance = Math.sqrt(
+      Math.pow(pacmanX - ghostX, 2) + Math.pow(pacmanY - ghostY, 2)
     );
-    return { width, height, grids };
+    if (distance < GRID_SIDE) {
+      onCollide(); // Notify the game that a collision occurred
+    }
   };
 
-  const generateDots = () => {
-    const { width, height, grids } = map.current;
-    const newDots = [];
+  // AI to determine the ghost's movement
+  const moveGhost = () => {
+    if (!map || map.length === 0) return;
 
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        if (grids[y][x] !== 1 && (x !== pacmanX || y !== pacmanY)) {
-          newDots.push({ x, y });
-        }
-      }
+    const possibleDirections = [];
+
+    // Check for available directions (excluding the opposite of the current direction)
+    if (directionRef.current !== DOWN && map[ghostYRef.current - 1]?.[ghostXRef.current] !== 1) {
+      possibleDirections.push(UP);
     }
-    return newDots;
-  };
-
-  const handle_movements = () => {
-    // Pac-Man movement
-    pacmanMove();
-    if (inputMemory.current > 0) {
-      pacmanSteer();
+    if (directionRef.current !== UP && map[ghostYRef.current + 1]?.[ghostXRef.current] !== 1) {
+      possibleDirections.push(DOWN);
     }
-    inputMemory.current -= 1;
-
-    // Ghosts movement
-    ghosts.current.forEach(ghost => ghost.move());
-  };
-
-  const handle_collisions = () => {
-    // Pac-Man and dots collision
-    for (let grid of getPacmanGrids(pacmanXRef.current, pacmanYRef.current)) {
-      if (dots.current.some(dot => dot.x === grid.x && dot.y === grid.y)) {
-        score.current += PICKUP_SCORE;
-        dots.current = dots.current.filter(dot => dot.x !== grid.x || dot.y !== grid.y);
-      }
+    if (directionRef.current !== RIGHT && map[ghostYRef.current]?.[ghostXRef.current - 1] !== 1) {
+      possibleDirections.push(LEFT);
+    }
+    if (directionRef.current !== LEFT && map[ghostYRef.current]?.[ghostXRef.current + 1] !== 1) {
+      possibleDirections.push(RIGHT);
     }
 
-    // Pac-Man and ghosts collision
-    ghosts.current.forEach(ghost => {
-      if (ghost.checkCollision(pacmanXRef.current, pacmanYRef.current)) {
-        console.log("Game Over! Pac-Man collided with a Ghost.");
-        clearInterval(gameLoop);
+    // If there are no valid directions, try to reverse the current direction
+    if (possibleDirections.length === 0) {
+      switch (directionRef.current) {
+        case UP:
+          setDirection(DOWN);
+          break;
+        case DOWN:
+          setDirection(UP);
+          break;
+        case LEFT:
+          setDirection(RIGHT);
+          break;
+        case RIGHT:
+          setDirection(LEFT);
+          break;
+        default:
+          setDirection(NODIR);
       }
-    });
+      return;
+    }
+
+    // Choose a random direction from the available directions
+    const newDirection = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
+    setDirection(newDirection);
+
+    // Move the ghost based on the chosen direction
+    let newX = ghostXRef.current;
+    let newY = ghostYRef.current;
+
+    switch (newDirection) {
+      case UP:
+        newY -= speed;
+        break;
+      case DOWN:
+        newY += speed;
+        break;
+      case LEFT:
+        newX -= speed;
+        break;
+      case RIGHT:
+        newX += speed;
+        break;
+      default:
+        break;
+    }
+
+    // Update the ghost's position
+    if (map[newY]?.[newX] !== 1) {
+      setGhostX(newX);
+      setGhostY(newY);
+    }
   };
 
   useEffect(() => {
-    map.current = generateMap();
-    dots.current = generateDots();
-    ghosts.current = initializeGhosts(map.current);
+    const intervalId = setInterval(() => {
+      moveGhost();
+      checkCollision();
+    }, 200); // Adjust the interval for speed
 
-    const gameLoop = setInterval(() => {
-      handle_movements();
-      handle_collisions();
-    }, 1000 / 60); // 60 ticks per second
+    return () => clearInterval(intervalId);
+  }, [map, pacmanX, pacmanY, onCollide]);
 
-    return () => clearInterval(gameLoop);
-  }, []);
+  const ghostStyle = {
+    position: 'absolute',
+    left: ghostX * GRID_SIDE,
+    top: ghostY * GRID_SIDE,
+    width: GRID_SIDE,
+    height: GRID_SIDE,
+    backgroundColor: 'red', // Change color for different ghosts
+    borderRadius: '100%',
+  };
 
-  return (
-    <div>
-      <GameUI pacmanX={pacmanX} pacmanY={pacmanY}
-        map={map.current.grids} dots={dots.current}
-        ghosts={ghosts.current.map(({ x, y }) => ({ x, y }))}
-        score={score.current}
-      />
-    </div>
-  );
+  return <div style={ghostStyle}></div>;
 };
 
-export default PacmanGame;
+export default Ghost;
