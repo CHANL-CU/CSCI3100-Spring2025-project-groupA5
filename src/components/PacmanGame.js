@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import GameUI from './GameUI.js';
 const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GAMEMAP_1, PICKUP_SCORE } = require('../constants.js');
 
@@ -19,9 +19,7 @@ const PacmanGame = () => {
   const score = useRef(0);
   const dots = useRef([]);
   const pacmanMoving = useRef(false);
-  {/* <mark style="background-color: #FFFF00;"> */}
   const [ghosts, setGhosts] = useState([]); // State to hold the ghosts
-  {/* </mark> */}
 
   const generateMap = () => {
     const { width, height, map } = GAMEMAP_1;
@@ -31,7 +29,7 @@ const PacmanGame = () => {
     return { width, height, grids };
   };
 
-  const generateDots = () => {
+  const generateDots = useCallback(() => {
     if (!map.current || map.current.length === 0) {
       console.error("Error: Map is undefined or empty!");
       return [];
@@ -48,7 +46,7 @@ const PacmanGame = () => {
       }
     }
     return newDots;
-  };
+  }, [map, pacmanX, pacmanY]);
 
   const getPacmanGrids = (x, y) => {
     if (x % GRID_SIDE !== 0) return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}, 
@@ -130,7 +128,6 @@ const PacmanGame = () => {
     pacmanYRef.current = newY;
   };
 
-    {/* <mark style="background-color: #FFFF00;"> */}
     // Ghost logic (3a, 3b, 3c, 3d)
     const moveGhosts = () => {
         setGhosts(prevGhosts => {
@@ -189,23 +186,18 @@ const PacmanGame = () => {
             });
         });
     };
-    {/* </mark> */}
 
-  const handle_movements = () => {
+  const handle_movements = useCallback(() => {
     pacmanMove();
     if (inputMemory.current > 0) {
       pacmanSteer(); // change deltaX/Y if turning is valid
     }
     inputMemory.current -= 1;
-
-    {/* <mark style="background-color: #FFFF00;"> */}
     moveGhosts();
-    {/* </mark> */}
-  };
+  }, [pacmanMove, inputMemory, pacmanSteer, moveGhosts]);
 
-    {/* <mark style="background-color: #FFFF00;"> */}
     // 3e: Collision detection
-    const checkCollisions = () => {
+    const checkCollisions = useCallback(() => {
         ghosts.forEach(ghost => {
             const pacmanGrid = getPacmanGrids(pacmanXRef.current, pacmanYRef.current)[0];
             const ghostGrid = getGhostGrids(ghost.x, ghost.y)[0];
@@ -222,10 +214,9 @@ const PacmanGame = () => {
                 dots.current = generateDots();
             }
         });
-    };
-    {/* </mark> */}
+    }, [ghosts, getPacmanGrids, getGhostGrids, setPacmanX, GAMEMAP_1.initialPacmanX, setPacmanY, setGhosts, generateDots]);
 
-  const handle_collisions = () => {
+  const handle_collisions = useCallback(() => {
     // pick-up collisions
     for (let grid of getPacmanGrids(pacmanXRef.current, pacmanYRef.current)) {
       if (dots.current.some(dot => dot.x === grid.x && dot.y === grid.y)) { // Within grid with pick-up
@@ -234,18 +225,13 @@ const PacmanGame = () => {
         console.log("PICKUP");
       }
     }
-
-    {/* <mark style="background-color: #FFFF00;"> */}
-    // TODO
-    {/* </mark> */}
-  };
+  }, [pacmanXRef, pacmanYRef, dots, getPacmanGrids]);
 
   // Game Initialization
   useEffect(() => {
     // Init game map
     map.current = generateMap();
     dots.current = generateDots();
-      {/* <mark style="background-color: #FFFF00;"> */}
       // 3f: Initialize ghosts
       const initialGhosts = [
           { x: 10, y: 10, direction: NODIR },
@@ -254,21 +240,16 @@ const PacmanGame = () => {
           { x: 11, y: 11, direction: NODIR },
       ];
       setGhosts(initialGhosts);
-      {/* </mark> */}
     
     // Setup Game Logic to run per tick
     const interval = setInterval(() => {
       handle_movements();
 	    handle_collisions();
-        {/* <mark style="background-color: #FFFF00;"> */}
         checkCollisions();
-        {/* </mark> */}
     }, 1000 / 60); // 60 ticks per second
 
     return () => clearInterval(interval);
-    {/* <mark style="background-color: #FFFF00;"> */}
-  }, [checkCollisions, generateDots, handle_collisions, handle_movements]); // Added dependencies
-    {/* </mark> */}
+  }, [checkCollisions, generateDots, handle_collisions, handle_movements]);
 
   // Add Keyboard Input
   useEffect(() => {
@@ -300,7 +281,6 @@ const PacmanGame = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-    {/* <mark style="background-color: #FFFF00;"> */}
     // 3a: Render Ghosts
     const renderGhosts = () => {
         return ghosts.map((ghost, index) => (
@@ -315,7 +295,6 @@ const PacmanGame = () => {
             }}></div>
         ));
     };
-    {/* </mark> */}
 
   return (
     <div>
@@ -323,9 +302,7 @@ const PacmanGame = () => {
       map={map.current.grids} dots={dots.current}
       dx={deltaXRef.current} dy={deltaYRef.current} pacmanMoving={pacmanMoving.current}
       score={score.current}/>
-        {/* <mark style="background-color: #FFFF00;"> */}
         {renderGhosts()}
-        {/* </mark> */}
     </div>
   );
 };
