@@ -21,8 +21,8 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, score }) =>
   // Animate Pac-Man's mouth opening and closing
   useEffect(() => {
     const interval = setInterval(() => {
-      pacmanAngle.current = pacmanAngle.current === 320 ? 359.9 : 320; // Pacman animation
-    }, 300);
+      pacmanAngle.current = pacmanAngle.current === 310 ? 359.9 : 310; // Pacman animation
+    }, 150);
     return () => clearInterval(interval);
   }, []);
 
