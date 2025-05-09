@@ -19,6 +19,10 @@ const PacmanGame = () => {
   const score = useRef(0);
   const dots = useRef([]);
   const pacmanMoving = useRef(false);
+    const [ghosts, setGhosts] = useState([]);
+
+    const width = GAMEMAP_1.width; // Use width from GAMEMAP_1
+    const [squares, setSquares] = useState([]); // Initialize squares state
 
   const generateMap = () => {
     const { width, height, map } = GAMEMAP_1;
@@ -27,6 +31,21 @@ const PacmanGame = () => {
     );
     return { width, height, grids };
   };
+
+    const generateSquares = useCallback(() => {
+        const { width, height, map } = GAMEMAP_1;
+        const newSquares = [];
+        for (let i = 0; i < width * height; i++) {
+            if (map[i] === 1) {
+                newSquares.push('wall');
+            } else if (map[i] === 0) {
+                newSquares.push('pac-dot');
+            } else {
+                newSquares.push('blank');
+            }
+        }
+        setSquares(newSquares);
+    }, []);
 
   const generateDots = () => {
     if (!map.current || map.current.length === 0) {
@@ -93,6 +112,43 @@ const PacmanGame = () => {
     deltaYRef.current = newDeltaY;
   };
 
+    const [pacmanCurrentIndex, setPacmanCurrentIndex] = useState(GAMEMAP_1.initialPacmanX + GAMEMAP_1.initialPacmanY * width);
+
+    const movePacman = useCallback((e) => {
+        setSquares(prevSquares => {
+            const newSquares = [...prevSquares];
+            newSquares[pacmanCurrentIndex] = newSquares[pacmanCurrentIndex].replace('pac-man', '').trim();
+
+            switch (e.keyCode) {
+                case 37: // Left
+                    if (pacmanCurrentIndex % width !== 0 && !newSquares[pacmanCurrentIndex - 1].includes('wall')) {
+                        setPacmanCurrentIndex(pacmanCurrentIndex - 1);
+                    }
+                    break;
+                case 38: // Up
+                    if (pacmanCurrentIndex - width >= 0 && !newSquares[pacmanCurrentIndex - width].includes('wall')) {
+                        setPacmanCurrentIndex(pacmanCurrentIndex - width);
+                    }
+                    break;
+                case 39: // Right
+                    if (pacmanCurrentIndex % width < width - 1 && !newSquares[pacmanCurrentIndex + 1].includes('wall')) {
+                        setPacmanCurrentIndex(pacmanCurrentIndex + 1);
+                    }
+                    break;
+                case 40: // Down
+                    if (pacmanCurrentIndex + width < width * width && !newSquares[pacmanCurrentIndex + width].includes('wall')) {
+                        setPacmanCurrentIndex(pacmanCurrentIndex + width);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            newSquares[pacmanCurrentIndex] = newSquares[pacmanCurrentIndex] + ' pac-man';
+            return newSquares;
+        });
+    }, [width, pacmanCurrentIndex, setPacmanCurrentIndex, setSquares]);
+
   const pacmanMove = () => {
     if (!pacmanMoving.current) return;
     if (!map.current) return;
@@ -129,10 +185,6 @@ const PacmanGame = () => {
       pacmanSteer(); // change deltaX/Y if turning is valid
     }
     inputMemory.current -= 1;
-
-    function unScareGhosts() {
-        ghosts.forEach(ghost => ghost.isScared = false)
-    }
 
     //create ghosts using Constructor
     class Ghost {
@@ -187,8 +239,7 @@ const PacmanGame = () => {
                 ghost.isScared = false
                 squares[ghost.currentIndex].classList.remove(ghost.className, "ghost", "scared-ghost")
                 ghost.currentIndex = ghost.startIndex
-                score += 100
-                scoreDisplay.innerHTML = score
+                score.current += 100
                 squares[ghost.currentIndex].classList.add(ghost.className, "ghost")
             }
             checkForGameOver()
@@ -233,15 +284,21 @@ const PacmanGame = () => {
     // Init game map
     map.current = generateMap();
     dots.current = generateDots();
+      generateSquares();
     
+      document.addEventListener('keyup', movePacman);
+
     // Setup Game Logic to run per tick
     const interval = setInterval(() => {
       handle_movements()
 	    handle_collisions()
     }, 1000 / 60); // 60 ticks per second
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+        clearInterval(interval);
+        document.removeEventListener('keyup', movePacman);
+    }
+  }, [generateSquares, handle_collisions, handle_movements, movePacman]);
 
   // Add Keyboard Input
   useEffect(() => {
@@ -274,12 +331,11 @@ const PacmanGame = () => {
   }, []);
 
   return (
-    <div>
-      <GameUI pacmanX={pacmanX} pacmanY={pacmanY}
-      map={map.current.grids} dots={dots.current}
-      dx={deltaXRef.current} dy={deltaYRef.current} pacmanMoving={pacmanMoving.current}
-      score={score.current}/>
-    </div>
+      <div className="grid">
+          {squares.map((square, index) => (
+              <div key={index} className={`square ${square}`}></div>
+          ))}
+      </div>
   );
 };
 
