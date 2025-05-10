@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import GameUI from './GameUI.js';
+import useSound from 'use-sound';
+import pickupSfx from '../sfx/pickup.mp3';
 const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GAMEMAP_1, PICKUP_SCORE } = require('../constants.js');
 
 // Usage: ./User.js
@@ -19,6 +21,8 @@ const PacmanGame = () => {
   const score = useRef(0);
   const dots = useRef([]);
   const pacmanMoving = useRef(false);
+
+  const [playPickupSfx, { sound: pickupSound }] = useSound(pickupSfx, { volume: 0.75 });
 
   const generateMap = () => {
     const { width, height, map } = GAMEMAP_1;
@@ -144,6 +148,7 @@ const PacmanGame = () => {
       if (dots.current.some(dot => dot.x === grid.x && dot.y === grid.y)) { // Within grid with pick-up
         score.current += PICKUP_SCORE;
         dots.current = dots.current.filter(dot => dot.x !== grid.x || dot.y !== grid.y);
+        playPickupSfx();
         console.log("PICKUP");
       }
     }
@@ -156,7 +161,7 @@ const PacmanGame = () => {
     // Init game map
     map.current = generateMap();
     dots.current = generateDots();
-    
+
     // Setup Game Logic to run per tick
     const interval = setInterval(() => {
       handle_movements()
@@ -164,7 +169,7 @@ const PacmanGame = () => {
     }, 1000 / 60); // 60 ticks per second
 
     return () => clearInterval(interval);
-  }, []);
+  }, [pickupSound]);
 
   // Add Keyboard Input
   useEffect(() => {
