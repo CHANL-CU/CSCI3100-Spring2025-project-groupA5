@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import GameUI from './GameUI.js';
 import useSound from 'use-sound';
 import pickupSfx from '../sfx/pickup.mp3';
+import startMusic from '../sfx/pacman_beginning.wav';
 const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GRID_PATH, GRID_WALL, GRID_GATE, GRID_GSPAWN, GAMEMAP_1, PICKUP_SCORE } = require('../constants.js');
 
 class Ghost {
@@ -33,6 +34,7 @@ const PacmanGame = ({ colorTheme }) => {
   const pacmanMoving = useRef(false);
 
   const [playPickupSfx, { sound: pickupSound }] = useSound(pickupSfx, { volume: 0.75 });
+  const [playStartMusic, { sound: startSound }] = useSound(startMusic, { volume: 0.75 });
 
   const generateMap = () => {
     const { width, height, map } = GAMEMAP_1;
@@ -185,7 +187,10 @@ const PacmanGame = ({ colorTheme }) => {
     map.current = generateMap();
     dots.current = generateDots();
     ghosts.current = generateGhosts();
-
+	  
+    // Start game with music
+    playStartMusic();
+	  
     // Setup Game Logic to run per tick
     const interval = setInterval(() => {
       handle_movements()
@@ -199,7 +204,7 @@ const PacmanGame = ({ colorTheme }) => {
       ghostSpawns.current = [];
       clearInterval(interval);
     }
-  }, [pickupSound]);
+  }, [pickupSound], [startMusic]);
 
   // Add Keyboard Input
   useEffect(() => {
