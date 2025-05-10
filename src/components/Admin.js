@@ -85,21 +85,48 @@ const AdminGuide = () => (
 );
 
 // Styling
+const theme = {
+  primary: '#2C3E50',
+  secondary: '#34495E',
+  accent: '#3498DB',
+  success: '#2ECC71',
+  danger: '#E74C3C',
+  warning: '#F1C40F',
+  background: '#ECF0F1',
+  white: '#FFFFFF',
+  gray: '#95A5A6',
+  text: '#2C3E50',
+  borderRadius: '12px',
+  transition: 'all 0.3s ease',
+  shadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  shadowHover: '0 8px 15px rgba(0, 0, 0, 0.2)',
+};
+
 const styles = {
   container: {
-    fontFamily: 'Arial, sans-serif',
-    padding: '20px',
-    backgroundImage: 'linear-gradient(to bottom, rgb(194, 220, 255), white)',
+    fontFamily: "'Inter', sans-serif",
+    padding: '24px',
+    backgroundColor: theme.background,
+    minHeight: '100vh',
   },
   header: {
     textAlign: 'center',
-    color: '#1c2e50',
+    color: theme.text,
+    marginBottom: '2rem',
+    padding: '2rem',
+    backgroundColor: theme.white,
+    borderRadius: theme.borderRadius,
+    boxShadow: theme.shadow,
   },
   nav: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '20px',
+    marginBottom: '2rem',
+    padding: '1rem',
+    backgroundColor: theme.white,
+    borderRadius: theme.borderRadius,
+    boxShadow: theme.shadow,
   },
   ul: {
     listStyleType: 'none',
@@ -109,15 +136,18 @@ const styles = {
     margin: 0,
   },
   logoutButton: {
-    backgroundColor: '#e74c3c',
-    color: '#fff',
+    backgroundColor: theme.danger,
+    color: theme.white,
     border: 'none',
     cursor: 'pointer',
     borderRadius: '4px',
     padding: '10px 30px',
   },
   main: {
-    marginTop: '20px',
+    backgroundColor: theme.white,
+    borderRadius: theme.borderRadius,
+    padding: '2rem',
+    boxShadow: theme.shadow,
   },
   section: {
     marginBottom: '40px',
@@ -127,11 +157,12 @@ const styles = {
     padding: 0,
   },
   listItem: {
-    border: '1px solid #bdc3c7',
+    border: '1px solid',
+    borderColor: theme.gray,
     padding: '15px',
     marginBottom: '10px',
     borderRadius: '5px',
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.white,
     overflowX: 'auto',
   },
   userDetails: {
@@ -146,7 +177,8 @@ const styles = {
     padding: '10px',
     fontSize: '14px',
     borderRadius: '4px',
-    border: '1px solid #2980b9',
+    border: '1px solid',
+    borderColor: theme.accent
   },
   checkboxLabel: {
     display: 'flex',
@@ -159,8 +191,8 @@ const styles = {
   },
   button: {
     padding: '8px 12px',
-    backgroundColor: '#4CAF50',
-    color: '#fff',
+    backgroundColor: theme.success,
+    color: theme.white,
     border: 'none',
     cursor: 'pointer',
     borderRadius: '4px',
@@ -170,8 +202,8 @@ const styles = {
   },
   buttonDelete: {
     padding: '8px 12px',
-    backgroundColor: '#e74c3c',
-    color: '#fff',
+    backgroundColor: theme.danger,
+    color: theme.white,
     border: 'none',
     cursor: 'pointer',
     borderRadius: '4px',
@@ -183,41 +215,45 @@ const styles = {
 
 const Container = styled.div`
   padding: 2rem;
-  background-color: rgba(205, 230, 247, 0.7);
-  border: 2px solid #007bff;
-  border-radius: 25px; 
-  color: #333;
-  margin: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  background-color: ${theme.white};
+  border-radius: ${theme.borderRadius};
+  color: ${theme.text};
+  margin: 1.5rem 0;
+  box-shadow: ${theme.shadow};
+  transition: ${theme.transition};
+
+  &:hover {
+    box-shadow: ${theme.shadowHover};
+  }
 `;
 
 const RoundedButton = styled.button`
-  background-color: #007bff;
-  color: white;
+  background-color: ${theme.accent};
+  color: ${theme.white};
   border: none;
-  border-radius: 25px; 
-  padding: 10px 20px;
-  font-size: 14px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease, background-color 0.05s ease;
+  border-radius: ${theme.borderRadius};
+  padding: 12px 24px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: ${theme.shadow};
+  transition: ${theme.transition};
 
   &:hover {
-    background-color: #fff; 
-    transform: scale(1.1); 
+    background-color: ${theme.secondary};
+    transform: translateY(-2px);
+    box-shadow: ${theme.shadowHover};
   }
 `;
 
 const NavLink = styled(Link)`
-  color: white;
+  color: ${theme.white};
   text-decoration: none;
-  font-family: 'Montserrat', sans-serif;
-  padding: 10px;
-  border-radius: 4px;
-  display: inline-block;
-  transition: color 0.3s ease;
+  font-weight: 500;
+  transition: ${theme.transition};
 
-  ${RoundedButton}:hover & {
-    color: #007bff; 
+  &:hover {
+    color: ${theme.white};
+    opacity: 0.9;
   }
 `;
 
