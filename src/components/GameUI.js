@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
+const { GRID_WALL, GRID_GATE } = require('../constants.js');
 
 // Place to display game
 const GameContainer = styled.svg`
@@ -61,7 +62,8 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, score, colo
         y={y * cellSize}
         width={cellSize}
         height={cellSize}
-        fill={cell === 1 ? colorTheme[0] : colorTheme[1]} // blue for wall, else black
+        fill={cell === GRID_WALL ? colorTheme[0] : cell === GRID_GATE ? colorTheme[0] : colorTheme[1]}
+        style={{opacity: `${cell === GRID_GATE ? 0.67 : 1}`}}
       />
     ))
   );

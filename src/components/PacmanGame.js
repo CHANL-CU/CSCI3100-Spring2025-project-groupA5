@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import GameUI from './GameUI.js';
 import useSound from 'use-sound';
 import pickupSfx from '../sfx/pickup.mp3';
-const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GAMEMAP_1, PICKUP_SCORE } = require('../constants.js');
+const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GRID_PATH, GRID_WALL, GRID_GATE, GRID_GSPAWN, GAMEMAP_1, PICKUP_SCORE } = require('../constants.js');
 
 // Usage: ./User.js
 // Implement Pac-Man game logic, pass data to GameUI for display
@@ -42,7 +42,7 @@ const PacmanGame = ({ colorTheme }) => {
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        if (grids[y][x] !== 1 && (x !== pacmanX || y !== pacmanY)) { 
+        if (grids[y][x] == GRID_PATH && (x*GRID_SIDE !== pacmanX || y*GRID_SIDE !== pacmanY)) { 
           // Place dot on non-wall tiles
           newDots.push({ x, y });
         }
@@ -87,7 +87,7 @@ const PacmanGame = ({ colorTheme }) => {
       // Invalid if running into walls
       const next = getPacmanGrids(pacmanXRef.current+newDeltaX, pacmanYRef.current+newDeltaY);
       const grids = map.current.grids;
-      if (grids[next[0].y][next[0].x] === 1 || grids[next[1].y][next[1].x] === 1) {
+      if (grids[next[0].y][next[0].x] !== GRID_PATH || grids[next[1].y][next[1].x] !== GRID_PATH) {
         console.log("STEER INTO WALLS!");
         return;
       }
@@ -114,7 +114,7 @@ const PacmanGame = ({ colorTheme }) => {
     // Reset deltas if next move would run into walls
     if (getPacmanGrids(newX, newY).length === 1) {
       const next = getPacmanGrids(newX+deltaXRef.current, newY+deltaYRef.current);
-      if (grids[next[0].y][next[0].x] === 1 || grids[next[1].y][next[1].x] === 1) {
+      if (grids[next[0].y][next[0].x] !== GRID_PATH || grids[next[1].y][next[1].x] !== GRID_PATH) {
         // deltaXRef.current = 0;
         // deltaYRef.current = 0;
         console.log("MOVE INTO WALLS!");
