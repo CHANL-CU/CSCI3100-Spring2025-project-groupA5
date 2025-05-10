@@ -14,7 +14,7 @@ const Pacman = styled.path`
 `;
 
 // Display game interface given required data
-const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, score, colorTheme }) => {
+const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, ghosts, score, colorTheme }) => {
   const cellSize = 20; // Pixels per grid cell
   const pacmanAngle = useRef(359.9); // Initial pacman angle 
 
@@ -79,15 +79,18 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, score, colo
       transform={`translate(${pacmanX + Math.floor(cellSize / 2)}, ${pacmanY + Math.floor(cellSize / 2)}) rotate(${dir})`} />
   );
 
+  const ghostsRender = ghosts.map((ghost, index) => (
+    <Pacman d={pacmanPath}
+      fill={'red'}
+      transform={`translate(${ghost.x + Math.floor(cellSize / 2)}, ${ghost.y + Math.floor(cellSize / 2)}) rotate(${dir})`} />
+  ));
+
   return (
     <GameContainer viewBox={`0 0 ${map[0]?.length * cellSize} ${map.length * cellSize}`}>
-      {/* Render map */}
       {mapTiles}
-      {/* Render dots */}
       {dotElements}
-      {/* Render Pac-Man */}
       {pacmanPlace}
-      {/* Render score */}
+      {ghostsRender}
       <text x={map[0]?.length * cellSize - 60} y={20} fill="white" fontFamily="'Press Start 2P', cursive" fontSize="20">
         Score: {score}
       </text>
