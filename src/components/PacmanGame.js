@@ -6,7 +6,7 @@ const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GAMEMAP_1, PICKUP_SCOR
 
 // Usage: ./User.js
 // Implement Pac-Man game logic, pass data to GameUI for display
-const PacmanGame = () => {
+const PacmanGame = ({ colorTheme }) => {
   // ! Directly referencing states in useEffect always give their initial value
   // useRef for tracking values
   const [pacmanX, setPacmanX] = useState(GAMEMAP_1.initialPacmanX);
@@ -206,7 +206,8 @@ const PacmanGame = () => {
       <GameUI pacmanX={pacmanX} pacmanY={pacmanY}
       map={map.current.grids} dots={dots.current}
       dx={deltaXRef.current} dy={deltaYRef.current} pacmanMoving={pacmanMoving.current}
-      score={score.current}/>
+      score={score.current}
+      colorTheme={colorTheme}/>
     </div>
   );
 };

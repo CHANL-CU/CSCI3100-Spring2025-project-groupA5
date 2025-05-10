@@ -9,12 +9,11 @@ const GameContainer = styled.svg`
 `;
 
 const Pacman = styled.path`
-  fill: #FFFF00; // Yellow color for Pac-Man 
   transition: d 0.2s ease-in-out;
 `;
 
 // Display game interface given required data
-const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, score }) => {
+const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, score, colorTheme }) => {
   const cellSize = 20; // Pixels per grid cell
   const pacmanAngle = useRef(359.9); // Initial pacman angle 
 
@@ -62,18 +61,19 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, score }) =>
         y={y * cellSize}
         width={cellSize}
         height={cellSize}
-        fill={cell === 1 ? "blue" : "black"} // blue for wall, else black
+        fill={cell === 1 ? colorTheme[0] : colorTheme[1]} // blue for wall, else black
       />
     ))
   );
   
   const dotElements = dots.map((dot, index) => (
-    <circle key={index} cx={dot.x * cellSize + cellSize / 2} cy={dot.y * cellSize + cellSize / 2} r={2} fill="yellow" />
+    <circle key={index} cx={dot.x * cellSize + cellSize / 2} cy={dot.y * cellSize + cellSize / 2} r={2} fill={colorTheme[2]} />
   ));
 
   // Render pacman by pacmanX and pacmanY
   const pacmanPlace = (
     <Pacman d={pacmanPath}
+      fill={colorTheme[2]}
       transform={`translate(${pacmanX + Math.floor(cellSize / 2)}, ${pacmanY + Math.floor(cellSize / 2)}) rotate(${dir})`} />
   );
 

@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import PacmanGame from './PacmanGame.js';
 import Leaderboard from './Leaderboard.js';
 import { FaUserCircle } from 'react-icons/fa'; // User icon
+import { COLOR_THEMES } from '../constants.js'
 
 // Usage: ./App.js
 // Interface for navigating PacmanGame/Leaderboard
@@ -13,6 +14,8 @@ const User = (props) => {
   const [darkMode, setDarkMode] = useState(props.darkMode);
   const sessionMade = useRef(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState(COLOR_THEMES[0]); // Default theme
 
   const darkToggle = () => {
     props.darkToggle();
@@ -73,11 +76,43 @@ const User = (props) => {
     setDropdownOpen(!dropdownOpen);
   };
 
+  const toggleColorDropdown = () => {
+    setColorDropdownOpen(!colorDropdownOpen);
+  };
+
+  const handleThemeSelect = (theme) => {
+    setSelectedTheme(theme);
+    setColorDropdownOpen(false);
+  };
+
   return (
     <BrowserRouter>
       <Container darkMode={darkMode}>
         <Header>
           <Title>Pac-Man</Title>
+          <div style={{position: `relative`}}>
+          <ColorThemeButton onClick={toggleColorDropdown}
+            style={{
+                    backgroundColor: `${selectedTheme[0]}`,
+                    color: `${selectedTheme[2]}` 
+            }}>
+            Color Themes
+          </ColorThemeButton>
+          {colorDropdownOpen && (
+            <ColorDropdown>
+              {COLOR_THEMES.map((theme, index) => (
+                <ColorCircle title={theme[3]}
+                  key={index}
+                  onClick={() => handleThemeSelect(theme)}
+                  style={{
+                    background: `linear-gradient(to right, ${theme[0]}, ${theme[2]})`,
+                    border: `2px solid ${theme[1]}`
+                  }}
+                />
+              ))}
+            </ColorDropdown>
+          )}
+          </div>
           <NavButtons>
             <StyledLink to="/">Game</StyledLink>
             <StyledLink to="/leaderboard">Leaderboard</StyledLink>
@@ -97,7 +132,7 @@ const User = (props) => {
         </Header>
         <BodyContainer darkMode={darkMode}>
           <Routes>
-            <Route path="/" element={<PacmanGame />} />
+            <Route path="/" element={<PacmanGame colorTheme={selectedTheme} />} />
             <Route path="/leaderboard" element={<Leaderboard username={props.username} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -126,6 +161,38 @@ const Title = styled.h1`
   font-size: 24px;
 `;
 
+const ColorThemeButton = styled.button`
+  margin-left: 0px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 16px;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const ColorDropdown = styled.div`
+  position: absolute;
+  top: 100%;
+  right: -75%;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  z-index: 1000;
+`;
+
+const ColorCircle = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+`;
+
 const NavButtons = styled.div`
   display: flex;
   gap: 15px;
@@ -133,7 +200,7 @@ const NavButtons = styled.div`
 
 const StyledLink = styled(Link)`
   text-decoration: none;
-  color: #007bff; // Bootstrap primary color
+  color: #007bff;
   &:hover {
     text-decoration: underline;
   }
