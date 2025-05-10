@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import PacmanGame from './PacmanGame.js';
 import Leaderboard from './Leaderboard.js';
 import { FaUserCircle } from 'react-icons/fa'; // User icon
-import { COLOR_THEMES } from '../constants.js'
+import { COLOR_THEMES } from '../constants.js';
 
 // Usage: ./App.js
 // Interface for navigating PacmanGame/Leaderboard
@@ -90,6 +90,13 @@ const User = (props) => {
       <Container darkMode={darkMode}>
         <Header>
           <Title>Pac-Man</Title>
+          <StartLink to= "/game" 
+          style={{
+            backgroundColor: `${selectedTheme[0]}`,
+            color: `${selectedTheme[2]}` 
+          }}>
+          Start Game
+          </StartLink>
           <div style={{position: `relative`}}>
           <ColorThemeButton onClick={toggleColorDropdown}
             style={{
@@ -112,6 +119,7 @@ const User = (props) => {
               ))}
             </ColorDropdown>
           )}
+          
           </div>
           <NavButtons>
             <StyledLink to="/">Game</StyledLink>
@@ -132,7 +140,7 @@ const User = (props) => {
         </Header>
         <BodyContainer darkMode={darkMode}>
           <Routes>
-            <Route path="/" element={<PacmanGame colorTheme={selectedTheme} />} />
+            <Route path="/game" element={<PacmanGame colorTheme={selectedTheme} />} />
             <Route path="/leaderboard" element={<Leaderboard username={props.username} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -168,6 +176,19 @@ const ColorThemeButton = styled.button`
   border-radius: 8px;
   padding: 8px;
   font-size: 16px;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const StartLink = styled(Link)`
+  margin-left: 0px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 18px;
+  text-decoration: none;
   &:hover {
     text-decoration: underline;
   }
