@@ -8,9 +8,121 @@ class Ghost {
     constructor(x, y, chooseDir) {
         this.x = x;
         this.y = y;
-        this.chooseDir = chooseDir; // (grids, pacmanPosition) => DIR
+        this.direction = NODIR; // Initial direction
+        this.chooseDir = chooseDir; // Function to decide direction at intersections
+    }
+
+    routeAI(grids) {
+        // Calculate the next position based on the current direction
+        let nextX = this.x, nextY = this.y;
+
+        switch (this.direction) {
+            case UP:
+                nextY -= GRID_SIDE;
+                break;
+            case DOWN:
+                nextY += GRID_SIDE;
+                break;
+            case LEFT:
+                nextX -= GRID_SIDE;
+                break;
+            case RIGHT:
+                nextX += GRID_SIDE;
+                break;
+            default:
+                break;
+        }
+
+        // Check if the next position is a wall
+        const gridX = Math.floor(nextX / GRID_SIDE);
+        const gridY = Math.floor(nextY / GRID_SIDE);
+        if (grids[gridY]?.[gridX] === GRID_WALL || grids[gridY]?.[gridX] === undefined) {
+            // If there's a wall or invalid grid, pick a new random direction
+            this.direction = this.chooseDir(grids, { x: this.x, y: this.y }, this.direction);
+        }
+    }
+
+    move(grids) {
+        // Update position based on the current direction
+        let newX = this.x, newY = this.y;
+
+        switch (this.direction) {
+            case UP:
+                newY -= 1;
+                break;
+            case DOWN:
+                newY += 1;
+                break;
+            case LEFT:
+                newX -= 1;
+                break;
+            case RIGHT:
+                newX += 1;
+                break;
+            default:
+                return; // No valid direction; Ghost stops
+        }
+
+        // Check for walls and update position
+        const gridX = Math.floor(newX / GRID_SIDE);
+        const gridY = Math.floor(newY / GRID_SIDE);
+
+        if (grids[gridY]?.[gridX] !== GRID_WALL) {
+            // If the next position is not a wall, move to the new position
+            this.x = newX;
+            this.y = newY;
+        } else {
+            // If there's a wall, stop and let `routeAI` handle direction change
+            this.routeAI(grids);
+        }
     }
 }
+const randomChooseDir = (grids, ghostPosition, currentDirection) => {
+    const possibleDirections = [];
+    const directions = [
+        { dir: UP, dx: 0, dy: -1 },
+        { dir: DOWN, dx: 0, dy: 1 },
+        { dir: LEFT, dx: -1, dy: 0 },
+        { dir: RIGHT, dx: 1, dy: 0 }
+    ];
+
+    // Check each direction for validity
+    for (const { dir, dx, dy } of directions) {
+        const nextX = Math.floor((ghostPosition.x + dx * GRID_SIDE) / GRID_SIDE);
+        const nextY = Math.floor((ghostPosition.y + dy * GRID_SIDE) / GRID_SIDE);
+
+        if (grids[nextY]?.[nextX] === GRID_PATH) {
+            possibleDirections.push(dir);
+        }
+    }
+
+    // Remove the direction that would make the Ghost turn back immediately
+    const oppositeDirection = getOppositeDirection(currentDirection);
+    const filteredDirections = possibleDirections.filter(dir => dir !== oppositeDirection);
+
+    // Choose a random valid direction
+    return (
+        filteredDirections[Math.floor(Math.random() * filteredDirections.length)] ||
+        possibleDirections[Math.floor(Math.random() * possibleDirections.length)] || // Fallback to any valid direction
+        NODIR // If no direction is valid, stop moving
+    );
+};
+
+// Helper function to get the opposite direction
+const getOppositeDirection = (direction) => {
+    switch (direction) {
+        case UP:
+            return DOWN;
+        case DOWN:
+            return UP;
+        case LEFT:
+            return RIGHT;
+        case RIGHT:
+            return LEFT;
+        default:
+            return NODIR;
+    }
+};
 
 // Usage: ./User.js
 // Implement Pac-Man game logic, pass data to GameUI for display
@@ -121,47 +233,80 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
 
   const initGame = () => {
     // Init game map
-    // TODO: Select from multiple maps
     const chosenMap = GAMEMAP_1;
     const { height, width, initialPacmanX, initialPacmanY, powerupSpawns, map } = chosenMap;
-    const grids = Array.from({ length: height }, (_, y) => 
-      Array.from({ length: width }, (_, x) => +map[x + y * width])
+    const grids = Array.from({ length: height }, (_, y) =>
+        Array.from({ length: width }, (_, x) => +map[x + y * width])
     );
     mapRef.current = { width, height, grids };
+
     // Init Pac-Man Position
     setPacmanX(initialPacmanX);
     setPacmanY(initialPacmanY);
     pacmanXRef.current = initialPacmanX;
     pacmanYRef.current = initialPacmanY;
-    // Create power-ups, pick-ups, ghost spawn zones
+
+    // Generate power-ups, pick-ups, and ghost spawn zones
     for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        if (powerupSpawns.some(p => p[0] === x && p[1] === y)) { 
-          powerups.current.push({ x, y });
-        } else if (grids[y][x] === GRID_PATH && (x*GRID_SIDE !== pacmanXRef.current || y*GRID_SIDE !== pacmanYRef.current)) { 
-          // Place dot on non-wall tiles
-          dots.current.push({ x, y });
-        } else if (grids[y][x] === GRID_GSPAWN) {
-          ghostSpawns.current.push({ x, y });
+        for (let x = 0; x < width; x++) {
+            if (powerupSpawns.some(p => p[0] === x && p[1] === y)) {
+                powerups.current.push({ x, y });
+            } else if (grids[y][x] === GRID_PATH) {
+                dots.current.push({ x, y });
+            } else if (grids[y][x] === GRID_GSPAWN) {
+                // Only add spawn points that are not surrounded by walls
+                if (!isSurroundedByWalls(x, y, grids)) {
+                    ghostSpawns.current.push({ x, y });
+                }
+            }
         }
-      }
     }
+
     // Create ghosts
-    let i = 0;
-    for (let x = 0; x < 4; x++) { // TODO: not use arbitrary number 4
-      ghosts.current.push(new Ghost(ghostSpawns.current[i].x*GRID_SIDE, ghostSpawns.current[i].y*GRID_SIDE, undefined));
-      i = (i + 1) % ghostSpawns.current.length;
+    const usedSpawns = new Set(); // Keep track of used spawn points to avoid overlap
+    for (let i = 0; i < 4; i++) {
+        let spawnIndex;
+        do {
+            spawnIndex = Math.floor(Math.random() * ghostSpawns.current.length);
+        } while (usedSpawns.has(spawnIndex));
+        usedSpawns.add(spawnIndex);
+
+        const spawnPoint = ghostSpawns.current[spawnIndex];
+        ghosts.current.push(
+            new Ghost(
+                spawnPoint.x * GRID_SIDE,
+                spawnPoint.y * GRID_SIDE,
+                randomChooseDir // Assign the AI for direction choosing
+            )
+        );
     }
+
     // Setup Game Logic to run per tick
     const gameLoop = setInterval(() => {
-      handle_movements();
-	    handle_collisions();
+        handle_movements();
+        handle_collisions();
     }, 1000 / 60); // 60 ticks per second
     gameLoopRef.current = gameLoop;
     setGameOver(false);
     setTimer(10);
     return gameLoop;
-  }
+};
+
+// Helper function to check if a spawn point is surrounded by walls
+const isSurroundedByWalls = (x, y, grids) => {
+    const neighbors = [
+        { dx: 0, dy: -1 }, // Up
+        { dx: 0, dy: 1 },  // Down
+        { dx: -1, dy: 0 }, // Left
+        { dx: 1, dy: 0 }   // Right
+    ];
+
+    return neighbors.every(({ dx, dy }) => {
+        const nx = x + dx;
+        const ny = y + dy;
+        return grids[ny]?.[nx] === GRID_WALL; // Check if the neighbor is a wall
+    });
+};
 
   const getPacmanGrids = (x, y) => {
     if (x % GRID_SIDE !== 0) return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}, 
@@ -238,17 +383,23 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
   const handle_movements = () => {
     pacmanMove();
     if (inputMemory.current > 0) {
-      pacmanSteer(); // change deltaX/Y if turning is valid
+        pacmanSteer(); // Change deltaX/Y if turning is valid
     }
     inputMemory.current -= 1;
 
+       // Ghosts movement
+    for (const ghost of ghosts.current) {
+        ghost.routeAI(mapRef.current.grids); // Update direction if needed
+        ghost.move(mapRef.current.grids);   // Move Ghost
+    }
+};
     /* TODO: Ghosts
     for (g of ghosts) {
       g.routeAI(pman.pos, map); 
       g.move();
     }
     */
-  };
+  
 
   const handle_collisions = () => {
     // if (gameOver) return; // Stop collision checks when game ends but gameOver value is not correct due to closure maybe
@@ -269,7 +420,15 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
         console.log("POWERUP");
       }
     }
-
+    for (const ghost of ghosts.current) {
+            const ghostGrid = getPacmanGrids(ghost.x, ghost.y);
+            for (const pacmanGrid of getPacmanGrids(pacmanXRef.current, pacmanYRef.current)) {
+                if (ghostGrid.some(g => g.x === pacmanGrid.x && g.y === pacmanGrid.y)) {
+                    setGameOver(true);
+                    return;
+                }
+            }
+        }
     // TODO: Ghosts collision
   };
 
