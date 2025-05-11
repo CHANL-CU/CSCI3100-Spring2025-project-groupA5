@@ -93,14 +93,14 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, powerups, dx, dy, pacmanMoving, g
     return 0;
   }
 
-const ghostColors = ['red', 'pink', 'cyan', 'orange', 'purple', 'green']; //ghost colors
-const fearColor = '#0073E6'; // Dark blue for fear mode
-const skinColor = '#FAD7A0'; // eye color in fear
-const mouthColor = 'pink'; // Pink zig-zag mouth in fear
+  const ghostColors = ['red', 'pink', 'cyan', 'orange', 'purple', 'green']; //ghost colors
+  const fearColor = '#0073E6'; // Dark blue for fear mode
+  const skinColor = '#FAD7A0'; // eye color in fear
+  const mouthColor = 'pink'; // Pink zig-zag mouth in fear
 
-const ghostsRender = ghosts.map((ghost, index) => {
-  const isScared = ghost.fear === 1; // Check if ghost is in fear mode
-  const ghostColor = isScared ? fearColor : ghostColors[index % ghostColors.length]; // Change color in fear mode
+  const ghostsRender = ghosts.map((ghost, index) => {
+  const isScared = ghost.fear > 0; // Check if ghost is in fear mode
+  const ghostColor = ghost.fear > 0 ? (ghost.fear <= 180 ? (ghost.fear % 20 > 10 ? 'white ' : fearColor) : fearColor) : ghostColors[index % ghostColors.length];
 
   return (
     <g key={index} transform={`translate(${ghost.x}, ${ghost.y})`}>
