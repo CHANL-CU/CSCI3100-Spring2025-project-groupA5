@@ -310,7 +310,7 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
 
   const initGame = () => {
     // Init game map
-    let chosenMapGroup = MAPS.big;
+    let chosenMapGroup = MAPS.small;
     if (winStreak.current > 2 && MAPS.big.length > 0) {
       chosenMapGroup = MAPS.big;
     } else if (winStreak.current > 1 && MAPS.medium.length > 0) {
