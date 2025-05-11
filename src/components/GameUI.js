@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-const { GRID_WALL, GRID_GATE } = require('../constants.js');
+const { GRID_WALL, GRID_GATE, UP, DOWN, LEFT, RIGHT } = require('../constants.js');
 
 // Place to display game
 const GameContainer = styled.svg`
@@ -83,10 +83,20 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, powerups, dx, dy, pacmanMoving, g
       transform={`translate(${pacmanX + Math.floor(cellSize / 2)}, ${pacmanY + Math.floor(cellSize / 2)}) rotate(${dir})`} />
   );
 
+  const dirToAngle = (dir) => {
+    switch (dir) {
+        case UP: return 270;
+        case DOWN: return 90;
+        case LEFT: return 180;
+        case RIGHT: return 0;
+    }
+    return 0;
+  }
+
   const ghostsRender = ghosts.map((ghost, index) => (
     <Pacman d={pacmanPath} key={index}
-      fill={'red'}
-      transform={`translate(${ghost.x + Math.floor(cellSize / 2)}, ${ghost.y + Math.floor(cellSize / 2)}) rotate(${dir})`} />
+      fill={`${ghost.fear > 0 ? (ghost.fear <= 180 ? (ghost.fear % 20 > 10 ? 'white ' : 'blue') : 'blue') : 'red'}`}
+      transform={`translate(${ghost.x + Math.floor(cellSize / 2)}, ${ghost.y + Math.floor(cellSize / 2)}) rotate(${dirToAngle(ghost.direction)})`} />
   ));
 
   return (

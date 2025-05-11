@@ -2,23 +2,209 @@ import React, { useState, useEffect, useRef } from 'react';
 import GameUI from './GameUI.js';
 import useSound from 'use-sound';
 import pickupSfx from '../sfx/pickup.mp3';
-const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GRID_PATH, GRID_WALL, GRID_GATE, GRID_GSPAWN, GAMEMAP_1, PICKUP_SCORE } = require('../constants.js');
+const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GRID_PATH, GRID_WALL, GRID_GATE, GRID_GSPAWN, GAMEMAP_1, PICKUP_SCORE, GHOST_SCORE } = require('../constants.js');
 
 class Ghost {
-    constructor(x, y, chooseDir) {
-      this.x = x;
-      this.y = y;
-      this.chooseDir = chooseDir; // (grids, pacmanPosition) => DIR
-      this.direction = NODIR;
-    }
+  constructor(x, y, chooseDir) {
+    this.x = x;
+    this.y = y;
+    this.chooseDir = chooseDir; // Strategy pattern for different ghost behaviors
+    this.direction = NODIR;
+    this.inSpawn = true;
+    this.fear = 0;
+  }
 
-    routeAI(pacman, grids) {
-      this.chooseDir();
-    }
+  routeAI(pacman, grids) {
+    const currentGrid = this.getGridPos();
+    const pacmanGrid = {
+      x: Math.floor(pacman.x / GRID_SIDE),
+      y: Math.floor(pacman.y / GRID_SIDE)
+    };
 
-    move() {
-      this.x += 1;
+    if (this.inSpawn) {
+      // Leaving spawn behavior
+      if (grids[currentGrid.y][currentGrid.x] === GRID_GATE) {
+        // At gate - find path to nearest normal path
+        const pathTarget = this.findNearestPathGrid(grids);
+        if (pathTarget) {
+          this.direction = this.findPathToTarget(grids, pathTarget);
+        }
+        this.inSpawn = false;
+      } else {
+        // Not at gate yet - move toward nearest gate
+        const gateTarget = this.findNearestGate(grids);
+        if (gateTarget) {
+          this.direction = this.findPathToTarget(grids, gateTarget);
+        }
+      }
+    } else if (this.fear > 0) {
+      // Fleeing behavior - move away from Pac-Man
+      this.direction = this.findPathToTarget(grids, pacmanGrid, true);
+    } else {
+      // Normal chasing behavior - use the strategy pattern
+      this.direction = this.chooseDir(pacmanGrid, grids, this);
     }
+  }
+
+  // Helper method to get current grid position
+  getGridPos() {
+    return {
+      x: Math.floor(this.x / GRID_SIDE),
+      y: Math.floor(this.y / GRID_SIDE)
+    };
+  }
+
+  // Helper method to get possible directions excluding walls and opposite direction
+  getPossibleDirections(grids) {
+    const currentGrid = this.getGridPos();
+    const directions = [];
+    const height = grids.length
+    const width = grids[0].length;
+    
+    // Check each direction (excluding opposite of current direction)
+    if (this.direction !== DOWN) {
+      if (currentGrid.y - 1 >= 0 && grids[currentGrid.y - 1]?.[currentGrid.x] !== GRID_WALL && !(!this.inSpawn && grids[currentGrid.y - 1]?.[currentGrid.x] === GRID_GATE)) {
+        directions.push(UP);
+      }
+    }
+    if (this.direction !== UP) {
+      if (currentGrid.y + 1 < height && grids[currentGrid.y + 1]?.[currentGrid.x] !== GRID_WALL && !(!this.inSpawn && grids[currentGrid.y + 1]?.[currentGrid.x] === GRID_GATE)) {
+        directions.push(DOWN);
+      }
+    }
+    if (this.direction !== RIGHT) {
+      if (currentGrid.x - 1 >= 0 && grids[currentGrid.y]?.[currentGrid.x - 1] !== GRID_WALL && !(!this.inSpawn && grids[currentGrid.y]?.[currentGrid.x - 1] === GRID_GATE)) {
+        directions.push(LEFT);
+      }
+    }
+    if (this.direction !== LEFT) {
+      if (currentGrid.x + 1 < width && grids[currentGrid.y]?.[currentGrid.x + 1] !== GRID_WALL && !(!this.inSpawn && grids[currentGrid.y]?.[currentGrid.x + 1] === GRID_GATE)) {
+        directions.push(RIGHT);
+      }
+    }
+    
+    // If no directions available (dead end), allow opposite direction
+    if (directions.length === 0 && this.direction !== NODIR) {
+      switch (this.direction) {
+        case UP: directions.push(DOWN); break;
+        case DOWN: directions.push(UP); break;
+        case LEFT: directions.push(RIGHT); break;
+        case RIGHT: directions.push(LEFT); break;
+      }
+    }
+    
+    return directions;
+  }
+
+  // Find direction to target position using simple "Manhattan distance" heuristic
+  findPathToTarget(grids, target, avoidTarget = false) {
+    const possibleDirs = this.getPossibleDirections(grids);
+    if (possibleDirs.length === 0) return NODIR;
+    
+    const currentGrid = this.getGridPos();
+    let bestDir = possibleDirs[0];
+    let bestScore = avoidTarget ? -Infinity : Infinity;
+    
+    for (const dir of possibleDirs) {
+      let nextGrid = {...currentGrid};
+      switch (dir) {
+        case UP: nextGrid.y--; break;
+        case DOWN: nextGrid.y++; break;
+        case LEFT: nextGrid.x--; break;
+        case RIGHT: nextGrid.x++; break;
+      }
+      
+      // Calculate Manhattan distance to target
+      const distance = Math.abs(nextGrid.x - target.x) + Math.abs(nextGrid.y - target.y);
+      const score = avoidTarget ? distance : -distance;
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestDir = dir;
+      }
+    }
+    
+    return bestDir;
+  }
+
+  // Helper to find nearest path grid when leaving spawn
+  findNearestPathGrid(grids) {
+    const currentGrid = this.getGridPos();
+    const visited = new Set();
+    const queue = [{...currentGrid, dist: 0}];
+    
+    while (queue.length > 0) {
+      const {x, y, dist} = queue.shift();
+      const key = `${x},${y}`;
+      
+      if (visited.has(key)) continue;
+      visited.add(key);
+      
+      if (grids[y][x] === GRID_PATH) {
+        return {x, y};
+      }
+      
+      // Check adjacent grids
+      for (const [dx, dy] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (grids[ny]?.[nx] !== undefined && grids[ny][nx] !== GRID_WALL) {
+          queue.push({x: nx, y: ny, dist: dist + 1});
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  // Helper to find nearest gate when in spawn
+  findNearestGate(grids) {
+    const currentGrid = this.getGridPos();
+    const visited = new Set();
+    const queue = [{...currentGrid, dist: 0}];
+    
+    while (queue.length > 0) {
+      const {x, y, dist} = queue.shift();
+      const key = `${x},${y}`;
+      
+      if (visited.has(key)) continue;
+      visited.add(key);
+      
+      if (grids[y][x] === GRID_GATE) {
+        return {x, y};
+      }
+      
+      // Check adjacent grids
+      for (const [dx, dy] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (grids[ny]?.[nx] !== undefined && grids[ny][nx] !== GRID_WALL) {
+          queue.push({x: nx, y: ny, dist: dist + 1});
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  move() {
+    switch (this.direction) {
+      case UP:
+        this.y -= 1;
+        break;
+      case DOWN:
+        this.y += 1;
+        break;
+      case LEFT:
+        this.x -= 1;
+        break;
+      case RIGHT:
+        this.x += 1;
+        break;
+      default:
+        break;
+    }
+  }
 }
 
 // Usage: ./User.js
@@ -45,9 +231,6 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
   const gameLoopRef = useRef(null); // Store game loop interval
 
   const [playPickupSfx, { sound: pickupSound }] = useSound(pickupSfx, { volume: 0.75 });
-
-  // dummy timer variable, delete if end game condition is completed
-  const [timer, setTimer] = useState(9999);
 
   // Add Keyboard Input
   useEffect(() => {
@@ -82,26 +265,9 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
   useEffect(() => {
     resetStates();
     const gameLoop = initGame();
-
-    const timerInterval = setInterval(() => {
-      console.log("TIMER TICKING");
-      setTimer((prevTimer) => {
-        if (prevTimer > 0) {
-          return prevTimer - 1;
-        } else {
-          setGameOver(true);
-          clearInterval(timerInterval);
-          clearInterval(gameLoopRef.current); // Stop game loop when game ends
-          sendScore(score.current);
-          return 0;
-        }
-      });
-    }, 1000);
-
     return () => {
       resetStates();
       clearInterval(gameLoop);
-      clearInterval(timerInterval);
     }
   }, [pickupSound]);
 
@@ -122,7 +288,6 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     pacmanMoving.current = false;
     setGameOver(false);
     gameLoopRef.current = null;
-    setTimer(0);
   }
 
   const initGame = () => {
@@ -156,7 +321,7 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
       ghosts.current.push(new Ghost(
         ghostSpawns.current[i].x*GRID_SIDE, 
         ghostSpawns.current[i].y*GRID_SIDE, 
-        () => console.log("hmmm")
+        ghostAIRandom
       ));
       i = (i + 1) % ghostSpawns.current.length;
     }
@@ -168,7 +333,6 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     }, 1000 / 60); // 60 ticks per second
     gameLoopRef.current = gameLoop;
     setGameOver(false);
-    setTimer(9999);
     return gameLoop;
   }
 
@@ -248,62 +412,108 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
       pacmanSteer(); // change deltaX/Y if turning is valid
     }
     inputMemory.current -= 1;
-
-    // TODO: Ghosts
     for (let g of ghosts.current) {
-      g.routeAI({ x: pacmanXRef.current, y: pacmanYRef.current }, mapRef.current.grids); 
+      if (g.x % GRID_SIDE === 0 && g.y % GRID_SIDE === 0) {
+        g.routeAI({ x: pacmanXRef.current, y: pacmanYRef.current }, mapRef.current.grids); 
+      }
       g.move();
+      g.fear = Math.max(0, g.fear-1);
     }
   };
 
   const handle_collisions = () => {
-    // if (gameOver) return; // Stop collision checks when game ends but gameOver value is not correct due to closure maybe
-    // pick-up collisions
-    for (let grid of getPacmanGrids(pacmanXRef.current, pacmanYRef.current)) {
-      // Pick-up
-      if (dots.current.some(dot => dot.x === grid.x && dot.y === grid.y)) {
+    // Collision detection constants
+    const PICKUP_RADIUS = GRID_SIDE * 0.4; // 40% of grid size
+    const GHOST_COLLISION_RADIUS = GRID_SIDE * 0.3; // 30% of grid size
+    const pacmanCenter = {
+      x: pacmanXRef.current + GRID_SIDE / 2,
+      y: pacmanYRef.current + GRID_SIDE / 2
+    };
+
+    // Pick-up collisions (dots and powerups)
+    const checkPickupCollision = (pickup) => {
+      const pickupCenter = {
+        x: pickup.x * GRID_SIDE + GRID_SIDE / 2,
+        y: pickup.y * GRID_SIDE + GRID_SIDE / 2
+      };
+      const dx = Math.abs(pacmanCenter.x - pickupCenter.x);
+      const dy = Math.abs(pacmanCenter.y - pickupCenter.y);
+      return dx < PICKUP_RADIUS && dy < PICKUP_RADIUS;
+    };
+    // Check dot collisions
+    dots.current = dots.current.filter(dot => {
+      if (checkPickupCollision(dot)) {
         score.current += PICKUP_SCORE;
-        dots.current = dots.current.filter(dot => dot.x !== grid.x || dot.y !== grid.y);
         playPickupSfx();
         console.log("PICKUP");
+        return false; // Remove this dot
       }
-      // Power-up
-      if (powerups.current.some(dot => dot.x === grid.x && dot.y === grid.y)) {
-        // TODO: Trigger all Ghosts' fearing
-        powerups.current = powerups.current.filter(dot => dot.x !== grid.x || dot.y !== grid.y);
+      return true; // Keep this dot
+    });
+    // Check powerup collisions
+    powerups.current = powerups.current.filter(powerup => {
+      if (checkPickupCollision(powerup)) {
+        // Trigger fear in all ghosts
+        ghosts.current.forEach(ghost => {
+          ghost.fear = 600; // 600 ticks -> 10 seconds
+        });
         playPickupSfx();
         console.log("POWERUP");
+        return false; // Remove this powerup
       }
-    }
+      return true; // Keep this powerup
+    });
+    // Ghost collisions
+    ghosts.current.forEach(ghost => {
+      const ghostCenter = {
+        x: ghost.x + GRID_SIDE / 2,
+        y: ghost.y + GRID_SIDE / 2
+      };
+      const dx = Math.abs(pacmanCenter.x - ghostCenter.x);
+      const dy = Math.abs(pacmanCenter.y - ghostCenter.y);
 
-    // TODO: Ghosts collision
+      if (dx < GHOST_COLLISION_RADIUS && dy < GHOST_COLLISION_RADIUS) {
+        if (ghost.fear > 0) {
+          // Pac-Man eat ghost
+          const respawnGrid = ghostSpawns.current[Math.floor(Math.random() * ghostSpawns.current.length)];
+          score.current += GHOST_SCORE;
+          ghost.x = respawnGrid.x*GRID_SIDE;
+          ghost.y = respawnGrid.y*GRID_SIDE;
+          ghost.inSpawn = true;
+          ghost.fear = 0;
+          ghost.direction = NODIR;
+          // playGhostEatenSfx();
+          console.log("GHOST EATEN");
+        } else {
+          console.log("GAME OVER");
+          // playDeathSfx();
+          endGame();
+        }
+      }
+    });
   };
+
+  const endGame = () => {
+    setGameOver(true);
+    clearInterval(gameLoopRef.current); // Stop game loop when game ends
+    sendScore(score.current);
+  }
 
   // Reset game when retry button is clicked
   const handleRetry = () => {
     resetStates();
     const gameLoop = initGame();
-
-    const timerInterval = setInterval(() => {
-      console.log("TIMER TICKING");
-      setTimer((prevTimer) => {
-        if (prevTimer > 0) {
-          return prevTimer - 1;
-        } else {
-          setGameOver(true);
-          clearInterval(timerInterval);
-          clearInterval(gameLoop); // Stop game loop when game ends
-          return 0;
-        }
-      });
-    }, 1000);
   };
+
+  const ghostAIRandom = (pacman, grids, ghostInstance) => {
+    const dirs = ghostInstance.getPossibleDirections(grids);
+    return dirs[Math.floor(Math.random() * dirs.length)];
+  }
 
   return (
     <>
     {!gameOver ? (
       <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-        <h2>Time Left: {timer}s</h2> {/* Timer Display */}
         <GameUI
           pacmanX={pacmanXRef.current}
           pacmanY={pacmanYRef.current}
