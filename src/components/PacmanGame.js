@@ -510,13 +510,16 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
   };
 
   const endGame = async (win = false) => {
-    setGameOver(true);
-    clearInterval(gameLoopRef.current); // Stop game loop when game ends
-    await sendScore(score.current);
     if (win) {
       winStreak.current += 1;
+      setGameOver(true);
+      clearInterval(gameLoopRef.current); // Stop game loop when game ends
+      await sendScore(score.current);
     } else {
-      winStreak.current = 0
+      winStreak.current = 0;
+      setGameOver(true);
+      clearInterval(gameLoopRef.current); // Stop game loop when game ends
+      await sendScore(score.current);
       score.current = 0;
     }
   }

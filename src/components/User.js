@@ -270,10 +270,10 @@ const DropdownItem = styled.div`
 `;
 
 const BodyContainer = styled.div`
-  margin: 30px;
+  margin: 5px;
   background-color: #fff3e0;
   color: #333;
-  padding: 20px;
+  padding: 5px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   font-family: 'Poppins', sans-serif;
