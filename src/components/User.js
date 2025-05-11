@@ -5,22 +5,16 @@ import styled from 'styled-components';
 import PacmanGame from './PacmanGame.js';
 import Leaderboard from './Leaderboard.js';
 import { FaUserCircle } from 'react-icons/fa'; // User icon
-import { COLOR_THEMES } from '../constants.js'
+import { COLOR_THEMES } from '../constants.js';
 
 // Usage: ./App.js
 // Interface for navigating PacmanGame/Leaderboard
 const User = (props) => {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [darkMode, setDarkMode] = useState(props.darkMode);
   const sessionMade = useRef(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(COLOR_THEMES[0]); // Default theme
-
-  const darkToggle = () => {
-    props.darkToggle();
-    setDarkMode(!darkMode);
-  };
 
   useEffect(() => {
     checkAdmin();
@@ -28,7 +22,7 @@ const User = (props) => {
       sessionMade.current = true;
       regenSession();
     }
-  }, [darkMode]);
+  }, []);
 
   const checkAdmin = async () => {
     const response = await fetch('http://localhost:8080/auth', {
@@ -50,7 +44,7 @@ const User = (props) => {
   };
 
   const regenSession = async () => {
-    const data = { asAdmin: false, darkMode };
+    const data = { asAdmin: false };
     await fetch('http://localhost:8080/session-regen', {
       method: 'POST',
       credentials: 'include',
@@ -87,7 +81,7 @@ const User = (props) => {
 
   return (
     <BrowserRouter>
-      <Container darkMode={darkMode}>
+      <Container>
         <Header>
           <Title>Pac-Man</Title>
           <div style={{position: `relative`}}>
@@ -130,7 +124,7 @@ const User = (props) => {
             )}
           </UserInfo>
         </Header>
-        <BodyContainer darkMode={darkMode}>
+        <BodyContainer>
           <Routes>
             <Route path="/" element={<PacmanGame colorTheme={selectedTheme} />} />
             <Route path="/leaderboard" element={<Leaderboard username={props.username} />} />
@@ -144,7 +138,7 @@ const User = (props) => {
 
 // Styled Components
 const Container = styled.div`
-  background-color: ${({ darkMode }) => (darkMode ? '#222' : 'white')};
+  background-color: white;
   min-height: 100vh;
 `;
 
@@ -237,8 +231,8 @@ const DropdownItem = styled.div`
 
 const BodyContainer = styled.div`
   margin: 30px;
-  background-color: ${({ darkMode }) => (darkMode ? '#222' : '#fff3e0')};
-  color: ${({ darkMode }) => (darkMode ? '#fff' : '#333')};
+  background-color: #fff3e0;
+  color: #333;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);

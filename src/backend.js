@@ -111,7 +111,7 @@ app.post('/auth', async (req, res) => {
 // Check if session exists
 app.post('/session', (req, res) => {
     if (req.session.user) {
-        res.send({ asAdmin: req.session.asAdmin, name: req.session.user.name, darkMode: req.session.darkMode }); // Send back asAdmin if session exists
+        res.send({ asAdmin: req.session.asAdmin, name: req.session.user.name }); // Send back asAdmin if session exists
     } else {
         res.status(401).json(null); // No session found
     }
@@ -123,13 +123,11 @@ app.post('/session-regen', async (req, res) => {
     if (req.session.user) {
         const user = await User.findOne({ _id: req.session.user._id });
         const asAdmin = req.body.asAdmin;
-        const darkMode = req.body.darkMode;
         req.session.regenerate(async function (err) {
         if (err) next(err)
 
         req.session.user = user;
         req.session.asAdmin = asAdmin;
-        req.session.darkMode = darkMode;
         res.send({ asAdmin: req.session.asAdmin }); // Send back asAdmin if ok
         })
     } else {
@@ -166,7 +164,6 @@ app.post('/login', async (req, res) => {
         // store user information in session
         req.session.user = user
         req.session.asAdmin = req.body.asAdmin;
-        req.session.darkMode = false; // default upon login
         return res.send(LOGIN_OK);
         })
     } catch (err) {

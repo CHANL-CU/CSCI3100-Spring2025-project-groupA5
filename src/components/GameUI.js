@@ -80,19 +80,19 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, ghosts, sco
   );
 
   const ghostsRender = ghosts.map((ghost, index) => (
-    <Pacman d={pacmanPath}
+    <Pacman d={pacmanPath} key={index}
       fill={'red'}
       transform={`translate(${ghost.x + Math.floor(cellSize / 2)}, ${ghost.y + Math.floor(cellSize / 2)}) rotate(${dir})`} />
   ));
 
   return (
-    <GameContainer viewBox={`0 0 ${map[0]?.length * cellSize} ${map.length * cellSize}`}>
+    <GameContainer viewBox={`0 0 ${map[0] ? map[0]?.length * cellSize : 0} ${map.length * cellSize}`}>
       {mapTiles}
       {dotElements}
       {pacmanPlace}
       {ghostsRender}
-      <text x={map[0]?.length * cellSize - 60} y={20} fill="white" fontFamily="'Press Start 2P', cursive" fontSize="20">
-        Score: {score}
+      <text x={map[0] ? map[0]?.length * cellSize - 15 : 0} y={20} fill="white" fontFamily="'Press Start 2P', cursive" fontSize="16">
+        Score:{score}
       </text>
     </GameContainer>
   );
