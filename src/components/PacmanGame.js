@@ -28,6 +28,8 @@ const PacmanGame = ({ colorTheme }) => {
   const map = useRef({width: 0, height: 0, grids: []});
   const score = useRef(0);
   const dots = useRef([]);
+  const powerupSpawns = useRef(GAMEMAP_1.powerupSpawns);
+  const powerups = useRef([]);
   const ghostSpawns = useRef([]);
   const ghosts = useRef([]);
   const pacmanMoving = useRef(false);
@@ -37,7 +39,7 @@ const PacmanGame = ({ colorTheme }) => {
   const [playPickupSfx, { sound: pickupSound }] = useSound(pickupSfx, { volume: 0.75 });
 
   // dummy timer variable, delete if end game condition is completed
-  const [timer, setTimer] = useState(5);
+  const [timer, setTimer] = useState(50);
 
   // end game condition, currently dummy timer
   useEffect(() => {
@@ -75,7 +77,9 @@ const PacmanGame = ({ colorTheme }) => {
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        if (grids[y][x] === GRID_PATH && (x*GRID_SIDE !== pacmanXRef.current || y*GRID_SIDE !== pacmanYRef.current)) { 
+        if (powerupSpawns.current.some(p => p[0] === x && p[1] === y)) { 
+          powerups.current.push({ x, y });
+        } else if (grids[y][x] === GRID_PATH && (x*GRID_SIDE !== pacmanXRef.current || y*GRID_SIDE !== pacmanYRef.current)) { 
           // Place dot on non-wall tiles
           newDots.push({ x, y });
         } else if (grids[y][x] === GRID_GSPAWN) {
@@ -192,11 +196,19 @@ const PacmanGame = ({ colorTheme }) => {
     // if (gameOver) return; // Stop collision checks when game ends but gameOver value is not correct due to closure maybe
     // pick-up collisions
     for (let grid of getPacmanGrids(pacmanXRef.current, pacmanYRef.current)) {
-      if (dots.current.some(dot => dot.x === grid.x && dot.y === grid.y)) { // Within grid with pick-up
+      // Pick-up
+      if (dots.current.some(dot => dot.x === grid.x && dot.y === grid.y)) {
         score.current += PICKUP_SCORE;
         dots.current = dots.current.filter(dot => dot.x !== grid.x || dot.y !== grid.y);
         playPickupSfx();
         console.log("PICKUP");
+      }
+      // Power-up
+      if (powerups.current.some(dot => dot.x === grid.x && dot.y === grid.y)) {
+        // TODO: Trigger all Ghosts' fearing
+        powerups.current = powerups.current.filter(dot => dot.x !== grid.x || dot.y !== grid.y);
+        playPickupSfx();
+        console.log("POWERUP");
       }
     }
 
@@ -308,6 +320,7 @@ const PacmanGame = ({ colorTheme }) => {
           pacmanY={pacmanY}
           map={map.current.grids}
           dots={dots.current}
+          powerups={powerups.current}
           dx={deltaXRef.current}
           dy={deltaYRef.current}
           pacmanMoving={pacmanMoving.current}

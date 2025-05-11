@@ -14,7 +14,7 @@ const Pacman = styled.path`
 `;
 
 // Display game interface given required data
-const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, ghosts, score, colorTheme }) => {
+const GameUI = ({ pacmanX, pacmanY, map, dots, powerups, dx, dy, pacmanMoving, ghosts, score, colorTheme }) => {
   const cellSize = 20; // Pixels per grid cell
   const pacmanAngle = useRef(359.9); // Initial pacman angle 
 
@@ -72,6 +72,10 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, ghosts, sco
     <circle key={index} cx={dot.x * cellSize + cellSize / 2} cy={dot.y * cellSize + cellSize / 2} r={2} fill={colorTheme[2]} />
   ));
 
+  const powerupElements = powerups.map((powerup, index) => (
+    <circle key={index} cx={powerup.x * cellSize + cellSize / 2} cy={powerup.y * cellSize + cellSize / 2} r={4} fill={colorTheme[2]} />
+  ));
+
   // Render pacman by pacmanX and pacmanY
   const pacmanPlace = (
     <Pacman d={pacmanPath}
@@ -89,6 +93,7 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, ghosts, sco
     <GameContainer viewBox={`0 0 ${map[0] ? map[0]?.length * cellSize : 0} ${map.length * cellSize}`}>
       {mapTiles}
       {dotElements}
+      {powerupElements}
       {pacmanPlace}
       {ghostsRender}
       <text x={map[0] ? map[0]?.length * cellSize - 15 : 0} y={20} fill="white" fontFamily="'Press Start 2P', cursive" fontSize="16">
