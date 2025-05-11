@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import GameUI from './GameUI.js';
 import useSound from 'use-sound';
 import pickupSfx from '../sfx/pickup.mp3';
-const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GRID_PATH, GRID_WALL, GRID_GATE, GRID_GSPAWN, GAMEMAP_1, PICKUP_SCORE, GHOST_SCORE } = require('../constants.js');
+const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GRID_PATH, GRID_WALL, GRID_GATE, GRID_GSPAWN, MAPS, PICKUP_SCORE, GHOST_SCORE } = require('../constants.js');
 
 class Ghost {
   constructor(x, y, chooseDir) {
@@ -12,6 +12,7 @@ class Ghost {
     this.direction = NODIR;
     this.inSpawn = true;
     this.fear = 0;
+    this.speedLimiter = 0;
   }
 
   routeAI(pacman, grids) {
@@ -188,6 +189,14 @@ class Ghost {
   }
 
   move() {
+    // Move at half speed when fearing
+    if (this.fear > 0) {
+      if (this.speedLimiter > 0) {
+        this.speedLimiter -= 1;
+        return;
+      }
+      this.speedLimiter = 1;
+    }
     switch (this.direction) {
       case UP:
         this.y -= 1;
@@ -222,13 +231,14 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
   const mapRef = useRef({width: 0, height: 0, grids: []});
   const score = useRef(0);
   const dots = useRef([]);
-  const powerupSpawns = useRef(GAMEMAP_1.powerupSpawns);
+  const powerupSpawns = useRef([]);
   const powerups = useRef([]);
   const ghostSpawns = useRef([]);
   const ghosts = useRef([]);
   const pacmanMoving = useRef(false);
   const [gameOver, setGameOver] = useState(false);
   const gameLoopRef = useRef(null); // Store game loop interval
+  const winStreak = useRef(0);
 
   const [playPickupSfx, { sound: pickupSound }] = useSound(pickupSfx, { volume: 0.75 });
 
@@ -263,6 +273,7 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
 
   // Game Initialization
   useEffect(() => {
+    score.current = 0;
     resetStates();
     const gameLoop = initGame();
     return () => {
@@ -279,7 +290,7 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     inputMemory.current = 0;
     inputDir.current = NODIR;
     mapRef.current = {width: 0, height: 0, grids: []};
-    score.current = 0;
+    // score.current = 0;
     dots.current = [];
     powerupSpawns.current = [];
     powerups.current = [];
@@ -292,9 +303,13 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
 
   const initGame = () => {
     // Init game map
-    // TODO: Select from multiple maps
-    const chosenMap = GAMEMAP_1;
-    const { height, width, initialPacmanX, initialPacmanY, powerupSpawns, map } = chosenMap;
+    let chosenMapGroup = MAPS.small;
+    if (winStreak.current > 5 && MAPS.big.length > 0) {
+      chosenMapGroup = MAPS.big;
+    } else if (winStreak.current > 2 && MAPS.medium.length > 0) {
+      chosenMapGroup = MAPS.medium;
+    }
+    const { height, width, initialPacmanX, initialPacmanY, powerupSpawns, map } = chosenMapGroup[Math.floor(Math.random() * chosenMapGroup.length)];
     const grids = Array.from({ length: height }, (_, y) => 
       Array.from({ length: width }, (_, x) => +map[x + y * width])
     );
@@ -329,8 +344,9 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     const gameLoop = setInterval(() => {
       handle_movements();
 	    handle_collisions();
+      if (dots.current.length === 0 && powerups.current.length === 0) endGame(true);
       setGameTick((prevTick) => { return prevTick >= 60 ? 0 : prevTick + 1 });
-    }, 1000 / 60); // 60 ticks per second
+    }, 1000 / Math.min(60+winStreak.current*6, 180)); // 60 ticks per second, 10% faster per win, cap 300% speed
     gameLoopRef.current = gameLoop;
     setGameOver(false);
     return gameLoop;
@@ -487,22 +503,28 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
         } else {
           console.log("GAME OVER");
           // playDeathSfx();
-          endGame();
+          endGame(false);
         }
       }
     });
   };
 
-  const endGame = () => {
+  const endGame = async (win = false) => {
     setGameOver(true);
     clearInterval(gameLoopRef.current); // Stop game loop when game ends
-    sendScore(score.current);
+    await sendScore(score.current);
+    if (win) {
+      winStreak.current += 1;
+    } else {
+      winStreak.current = 0
+      score.current = 0;
+    }
   }
 
   // Reset game when retry button is clicked
   const handleRetry = () => {
     resetStates();
-    const gameLoop = initGame();
+    initGame();
   };
 
   const ghostAIRandom = (pacman, grids, ghostInstance) => {
@@ -528,6 +550,14 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
           colorTheme={colorTheme}
         />
       </div>
+      ) : winStreak.current > 0 ? (
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <h1>Good Job!</h1>
+          <p>Win Streak: {winStreak.current}</p>
+          <p>Game Speed: {100+winStreak.current*10}%!</p>
+          <p>Score: {score.current}</p>
+          <button onClick={handleRetry}>Next</button>
+        </div>
       ) : (
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
           <h1>Game Over!</h1>
