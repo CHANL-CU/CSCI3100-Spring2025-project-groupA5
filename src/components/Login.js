@@ -83,7 +83,7 @@ const Login = (props) => {
     if (response.ok) {
       const sessionData = await response.json();
       if (sessionData) {
-        props.login(sessionData.asAdmin, sessionData.name, sessionData.darkMode);
+        props.login(sessionData.asAdmin, sessionData.name);
       }
     } else {
       console.log('No active session found.');

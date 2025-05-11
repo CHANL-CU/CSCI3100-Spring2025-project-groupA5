@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
+const { GRID_WALL, GRID_GATE } = require('../constants.js');
 
 // Place to display game
 const GameContainer = styled.svg`
@@ -9,20 +10,19 @@ const GameContainer = styled.svg`
 `;
 
 const Pacman = styled.path`
-  fill: #FFFF00; // Yellow color for Pac-Man 
   transition: d 0.2s ease-in-out;
 `;
 
 // Display game interface given required data
-const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, score }) => {
+const GameUI = ({ pacmanX, pacmanY, map, dots, powerups, dx, dy, pacmanMoving, ghosts, score, colorTheme }) => {
   const cellSize = 20; // Pixels per grid cell
   const pacmanAngle = useRef(359.9); // Initial pacman angle 
 
   // Animate Pac-Man's mouth opening and closing
   useEffect(() => {
     const interval = setInterval(() => {
-      pacmanAngle.current = pacmanAngle.current === 320 ? 359.9 : 320; // Pacman animation
-    }, 300);
+      pacmanAngle.current = pacmanAngle.current === 310 ? 359.9 : 310; // Pacman animation
+    }, 150);
     return () => clearInterval(interval);
   }, []);
 
@@ -62,32 +62,42 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, dx, dy, pacmanMoving, score }) =>
         y={y * cellSize}
         width={cellSize}
         height={cellSize}
-        fill={cell === 1 ? "blue" : "black"} // blue for wall, else black
+        fill={cell === GRID_WALL ? colorTheme[0] : cell === GRID_GATE ? colorTheme[0] : colorTheme[1]}
+        style={{opacity: `${cell === GRID_GATE ? 0.67 : 1}`}}
       />
     ))
   );
   
   const dotElements = dots.map((dot, index) => (
-    <circle key={index} cx={dot.x * cellSize + cellSize / 2} cy={dot.y * cellSize + cellSize / 2} r={2} fill="yellow" />
+    <circle key={index} cx={dot.x * cellSize + cellSize / 2} cy={dot.y * cellSize + cellSize / 2} r={2} fill={colorTheme[2]} />
+  ));
+
+  const powerupElements = powerups.map((powerup, index) => (
+    <circle key={index} cx={powerup.x * cellSize + cellSize / 2} cy={powerup.y * cellSize + cellSize / 2} r={4} fill={colorTheme[2]} />
   ));
 
   // Render pacman by pacmanX and pacmanY
   const pacmanPlace = (
     <Pacman d={pacmanPath}
+      fill={colorTheme[2]}
       transform={`translate(${pacmanX + Math.floor(cellSize / 2)}, ${pacmanY + Math.floor(cellSize / 2)}) rotate(${dir})`} />
   );
 
+  const ghostsRender = ghosts.map((ghost, index) => (
+    <Pacman d={pacmanPath} key={index}
+      fill={'red'}
+      transform={`translate(${ghost.x + Math.floor(cellSize / 2)}, ${ghost.y + Math.floor(cellSize / 2)}) rotate(${dir})`} />
+  ));
+
   return (
-    <GameContainer viewBox={`0 0 ${map[0]?.length * cellSize} ${map.length * cellSize}`}>
-      {/* Render map */}
+    <GameContainer viewBox={`0 0 ${map[0] ? map[0]?.length * cellSize : 0} ${map.length * cellSize}`}>
       {mapTiles}
-      {/* Render dots */}
       {dotElements}
-      {/* Render Pac-Man */}
+      {powerupElements}
       {pacmanPlace}
-      {/* Render score */}
-      <text x={map[0]?.length * cellSize - 60} y={20} fill="white" fontFamily="'Press Start 2P', cursive" fontSize="20">
-        Score: {score}
+      {ghostsRender}
+      <text x={map[0] ? map[0]?.length * cellSize - 15 : 0} y={20} fill="white" fontFamily="'Press Start 2P', cursive" fontSize="16">
+        Score:{score}
       </text>
     </GameContainer>
   );
