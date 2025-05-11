@@ -6,9 +6,18 @@ const { GRID_SIDE, MAX_MEM, NODIR, UP, DOWN, LEFT, RIGHT, GRID_PATH, GRID_WALL, 
 
 class Ghost {
     constructor(x, y, chooseDir) {
-        this.x = x;
-        this.y = y;
-        this.chooseDir = chooseDir; // (grids, pacmanPosition) => DIR
+      this.x = x;
+      this.y = y;
+      this.chooseDir = chooseDir; // (grids, pacmanPosition) => DIR
+      this.direction = NODIR;
+    }
+
+    routeAI(pacman, grids) {
+      this.chooseDir();
+    }
+
+    move() {
+      this.x += 1;
     }
 }
 
@@ -17,10 +26,9 @@ class Ghost {
 const PacmanGame = ({ colorTheme, sendScore }) => {
   // ! Directly referencing states in useEffect always give their initial value
   // useRef for tracking values
-  const [pacmanX, setPacmanX] = useState(GAMEMAP_1.initialPacmanX);
-  const [pacmanY, setPacmanY] = useState(GAMEMAP_1.initialPacmanY);
-  const pacmanXRef = useRef(pacmanX);
-  const pacmanYRef = useRef(pacmanY);
+  const [gameTick, setGameTick] = useState(0);
+  const pacmanXRef = useRef(0);
+  const pacmanYRef = useRef(0);
   const deltaXRef = useRef(0);
   const deltaYRef = useRef(0);
   const inputMemory = useRef(0);
@@ -39,7 +47,7 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
   const [playPickupSfx, { sound: pickupSound }] = useSound(pickupSfx, { volume: 0.75 });
 
   // dummy timer variable, delete if end game condition is completed
-  const [timer, setTimer] = useState(10);
+  const [timer, setTimer] = useState(9999);
 
   // Add Keyboard Input
   useEffect(() => {
@@ -98,8 +106,6 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
   }, [pickupSound]);
 
   const resetStates = () => {
-    setPacmanX(0);
-    setPacmanY(0);
     pacmanXRef.current = 0;
     pacmanYRef.current = 0;
     deltaXRef.current = 0;
@@ -129,8 +135,6 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     );
     mapRef.current = { width, height, grids };
     // Init Pac-Man Position
-    setPacmanX(initialPacmanX);
-    setPacmanY(initialPacmanY);
     pacmanXRef.current = initialPacmanX;
     pacmanYRef.current = initialPacmanY;
     // Create power-ups, pick-ups, ghost spawn zones
@@ -149,17 +153,22 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     // Create ghosts
     let i = 0;
     for (let x = 0; x < 4; x++) { // TODO: not use arbitrary number 4
-      ghosts.current.push(new Ghost(ghostSpawns.current[i].x*GRID_SIDE, ghostSpawns.current[i].y*GRID_SIDE, undefined));
+      ghosts.current.push(new Ghost(
+        ghostSpawns.current[i].x*GRID_SIDE, 
+        ghostSpawns.current[i].y*GRID_SIDE, 
+        () => console.log("hmmm")
+      ));
       i = (i + 1) % ghostSpawns.current.length;
     }
     // Setup Game Logic to run per tick
     const gameLoop = setInterval(() => {
       handle_movements();
 	    handle_collisions();
+      setGameTick((prevTick) => { return prevTick >= 60 ? 0 : prevTick + 1 });
     }, 1000 / 60); // 60 ticks per second
     gameLoopRef.current = gameLoop;
     setGameOver(false);
-    setTimer(10);
+    setTimer(9999);
     return gameLoop;
   }
 
@@ -229,8 +238,6 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
         pacmanMoving.current = false;
       }
     }
-    setPacmanX(newX);
-    setPacmanY(newY);
     pacmanXRef.current = newX;
     pacmanYRef.current = newY;
   };
@@ -242,12 +249,11 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     }
     inputMemory.current -= 1;
 
-    /* TODO: Ghosts
-    for (g of ghosts) {
-      g.routeAI(pman.pos, map); 
+    // TODO: Ghosts
+    for (let g of ghosts.current) {
+      g.routeAI({ x: pacmanXRef.current, y: pacmanYRef.current }, mapRef.current.grids); 
       g.move();
     }
-    */
   };
 
   const handle_collisions = () => {
@@ -299,8 +305,8 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
       <div style={{ textAlign: 'center', marginBottom: '10px' }}>
         <h2>Time Left: {timer}s</h2> {/* Timer Display */}
         <GameUI
-          pacmanX={pacmanX}
-          pacmanY={pacmanY}
+          pacmanX={pacmanXRef.current}
+          pacmanY={pacmanYRef.current}
           map={mapRef.current.grids}
           dots={dots.current}
           powerups={powerups.current}
