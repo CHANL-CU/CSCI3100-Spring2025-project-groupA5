@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-const { GRID_WALL, GRID_GATE } = require('../constants.js');
+const { GRID_WALL, GRID_GATE, UP, DOWN, LEFT, RIGHT } = require('../constants.js');
 
 // Place to display game
 const GameContainer = styled.svg`
@@ -82,6 +82,16 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, powerups, dx, dy, pacmanMoving, g
       fill={colorTheme[2]}
       transform={`translate(${pacmanX + Math.floor(cellSize / 2)}, ${pacmanY + Math.floor(cellSize / 2)}) rotate(${dir})`} />
   );
+
+  const dirToAngle = (dir) => {
+    switch (dir) {
+        case UP: return 270;
+        case DOWN: return 90;
+        case LEFT: return 180;
+        case RIGHT: return 0;
+    }
+    return 0;
+  }
 
 const ghostColors = ['red', 'pink', 'cyan', 'orange', 'purple', 'green']; //ghost colors
 const fearColor = '#0073E6'; // Dark blue for fear mode

@@ -18,9 +18,9 @@ const User = (props) => {
   const [gameStarted, setGameStarted] = useState(false);
 
   useEffect(() => {
-    checkAdmin();
     if (!sessionMade.current) {
       sessionMade.current = true;
+      checkAdmin();
       regenSession();
     }
   }, []);
@@ -88,6 +88,27 @@ const User = (props) => {
     setGameStarted(false);
   }
 
+  const sendScore = async (score) => {
+      const payload = { name: props.username, score };
+      if (!payload.name || payload.score === undefined) {
+          alert('ERR: Failed to send score.');
+          return;
+      }
+      try {
+          const res = await fetch(`http://localhost:8080/update-score`, {
+              method: 'PUT',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error('Failed to send score.');
+          alert('Your score was uploaded successfully.');
+      } catch (error) {
+          console.error(error);
+          alert(`Error: ${error.message}`);
+      }
+  };
+
   return (
     <BrowserRouter>
       <Container>
@@ -137,7 +158,7 @@ const User = (props) => {
           <Routes>
             <Route path="/" element={
               gameStarted ? 
-              <PacmanGame colorTheme={selectedTheme} /> : 
+              <PacmanGame colorTheme={selectedTheme} sendScore={sendScore} /> : 
               <StartButton onClick={startGame}
               style={{
                 backgroundColor: `${selectedTheme[0]}`,

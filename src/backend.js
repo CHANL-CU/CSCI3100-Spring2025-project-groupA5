@@ -236,6 +236,22 @@ app.post('/register', async (req, res) => {
     }
 });
 
+// Usage: User
+// Update the high score of a user
+app.put('/update-score', async (req, res) => {
+    try {
+      const { name, score } = req.body;
+      const user = await User.findOne({ name });
+      if (!user) return res.status(404).send('User not found');
+      if (score !== undefined && (!user.highScore || score > user.highScore)) user.highScore = score;
+      await user.save();
+      res.status(200).json(user);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error.');
+    }
+});
+
 // Usage: Leaderboard
 // Fetch top 10 user data with highest highScore for display
 app.get('/leaderboard/users', async (req, res) => {
