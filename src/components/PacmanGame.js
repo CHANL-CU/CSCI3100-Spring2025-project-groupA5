@@ -310,10 +310,10 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
 
   const initGame = () => {
     // Init game map
-    let chosenMapGroup = MAPS.small;
-    if (winStreak.current > 5 && MAPS.big.length > 0) {
+    let chosenMapGroup = MAPS.big;
+    if (winStreak.current > 2 && MAPS.big.length > 0) {
       chosenMapGroup = MAPS.big;
-    } else if (winStreak.current > 2 && MAPS.medium.length > 0) {
+    } else if (winStreak.current > 1 && MAPS.medium.length > 0) {
       chosenMapGroup = MAPS.medium;
     }
     const { height, width, initialPacmanX, initialPacmanY, powerupSpawns, map } = chosenMapGroup[Math.floor(Math.random() * chosenMapGroup.length)];
