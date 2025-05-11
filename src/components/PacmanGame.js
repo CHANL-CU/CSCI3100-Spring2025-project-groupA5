@@ -13,6 +13,7 @@ class Ghost {
     this.inSpawn = true;
     this.fear = 0;
     this.speedLimiter = 0;
+    this.reviveTimer = 0;
   }
 
   routeAI(pacman, grids) {
@@ -189,6 +190,11 @@ class Ghost {
   }
 
   move() {
+    //revive timer
+    if (this.reviveTimer > 0) {
+      this.reviveTimer -= 1;
+      return;
+    }  
     // Move at half speed when fearing
     if (this.fear > 0) {
       if (this.speedLimiter > 0) {
@@ -495,6 +501,7 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
           score.current += GHOST_SCORE;
           ghost.x = respawnGrid.x*GRID_SIDE;
           ghost.y = respawnGrid.y*GRID_SIDE;
+	  ghost.reviveTimer=240;
           ghost.inSpawn = true;
           ghost.fear = 0;
           ghost.direction = NODIR;
