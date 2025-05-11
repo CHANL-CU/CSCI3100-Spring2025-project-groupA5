@@ -98,7 +98,7 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, powerups, dx, dy, pacmanMoving, g
   const skinColor = '#FAD7A0'; // eye color in fear
   const mouthColor = 'pink'; // Pink zig-zag mouth in fear
 
-  const ghostsRender = ghosts.map((ghost, index) => {
+const ghostsRender = ghosts.map((ghost, index) => {
   const isScared = ghost.fear > 0; // Check if ghost is in fear mode
   const ghostColor = ghost.fear > 0 ? (ghost.fear <= 180 ? (ghost.fear % 20 > 10 ? 'white ' : fearColor) : fearColor) : ghostColors[index % ghostColors.length];
 
