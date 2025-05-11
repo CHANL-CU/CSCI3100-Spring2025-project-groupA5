@@ -31,8 +31,31 @@ const PacmanGame = ({ colorTheme }) => {
   const ghostSpawns = useRef([]);
   const ghosts = useRef([]);
   const pacmanMoving = useRef(false);
+  const [gameOver, setGameOver] = useState(false);
+  const gameLoopRef = useRef(null); // Store game loop interval
 
   const [playPickupSfx, { sound: pickupSound }] = useSound(pickupSfx, { volume: 0.75 });
+
+  // dummy timer variable, delete if end game condition is completed
+  const [timer, setTimer] = useState(5);
+
+  // end game condition, currently dummy timer
+  useEffect(() => {
+    const timerInterval = setInterval(() => {
+      console.log("TIMER TICKING");
+      setTimer((prevTimer) => {
+        if (prevTimer > 0) {
+          return prevTimer - 1;
+        } else {
+          setGameOver(true);
+          clearInterval(timerInterval);
+          clearInterval(gameLoopRef.current); // Stop game loop when game ends
+          return 0;
+        }
+      });
+    }, 1000);
+    return () => clearInterval(timerInterval);
+  }, []);
 
   const generateMap = () => {
     const { width, height, map } = GAMEMAP_1;
@@ -52,7 +75,7 @@ const PacmanGame = ({ colorTheme }) => {
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        if (grids[y][x] === GRID_PATH && (x*GRID_SIDE !== pacmanX || y*GRID_SIDE !== pacmanY)) { 
+        if (grids[y][x] === GRID_PATH && (x*GRID_SIDE !== pacmanXRef.current || y*GRID_SIDE !== pacmanYRef.current)) { 
           // Place dot on non-wall tiles
           newDots.push({ x, y });
         } else if (grids[y][x] === GRID_GSPAWN) {
@@ -166,6 +189,7 @@ const PacmanGame = ({ colorTheme }) => {
   };
 
   const handle_collisions = () => {
+    // if (gameOver) return; // Stop collision checks when game ends but gameOver value is not correct due to closure maybe
     // pick-up collisions
     for (let grid of getPacmanGrids(pacmanXRef.current, pacmanYRef.current)) {
       if (dots.current.some(dot => dot.x === grid.x && dot.y === grid.y)) { // Within grid with pick-up
@@ -191,15 +215,58 @@ const PacmanGame = ({ colorTheme }) => {
       handle_movements()
 	    handle_collisions()
     }, 1000 / 60); // 60 ticks per second
+    gameLoopRef.current = interval;
 
     return () => {
       map.current = {width: 0, height: 0, grids: []};
       dots.current = [];
       ghosts.current = [];
       ghostSpawns.current = [];
+      gameLoopRef.current = null;
       clearInterval(interval);
+      // clearInterval(gameLoopRef.current);
     }
   }, [pickupSound]);
+
+  // Reset game when retry button is clicked
+  const handleRetry = () => {
+    setGameOver(false);
+    setTimer(5); //dummy timer variable, delete when end game condition completed
+    score.current = 0;
+    setPacmanX(GAMEMAP_1.initialPacmanX);
+    setPacmanY(GAMEMAP_1.initialPacmanY);
+    pacmanXRef.current = GAMEMAP_1.initialPacmanX;
+    pacmanYRef.current = GAMEMAP_1.initialPacmanY;
+    deltaXRef.current = 0;
+    deltaYRef.current = 0;
+    inputMemory.current = 0;
+    ghostSpawns.current = [];
+    ghosts.current = [];
+    pacmanMoving.current = false;
+    map.current = generateMap();
+    dots.current = generateDots();
+    ghosts.current = generateGhosts();
+
+    // Restart game loop
+    gameLoopRef.current = setInterval(() => {
+      handle_movements();
+      handle_collisions();
+    }, 1000 / 60);
+
+    const timerInterval = setInterval(() => {
+      console.log("TIMER TICKING");
+      setTimer((prevTimer) => {
+        if (prevTimer > 0) {
+          return prevTimer - 1;
+        } else {
+          setGameOver(true);
+          clearInterval(timerInterval);
+          clearInterval(gameLoopRef.current); // Stop game loop when game ends
+          return 0;
+        }
+      });
+    }, 1000);
+  };
 
   // Add Keyboard Input
   useEffect(() => {
@@ -232,14 +299,31 @@ const PacmanGame = ({ colorTheme }) => {
   }, []);
 
   return (
-    <div>
-      <GameUI pacmanX={pacmanX} pacmanY={pacmanY}
-      map={map.current.grids} dots={dots.current}
-      dx={deltaXRef.current} dy={deltaYRef.current} pacmanMoving={pacmanMoving.current}
-      ghosts={ghosts.current}
-      score={score.current}
-      colorTheme={colorTheme}/>
-    </div>
+    <>
+    {!gameOver ? (
+      <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+        <h2>Time Left: {timer}s</h2> {/* Timer Display */}
+        <GameUI
+          pacmanX={pacmanX}
+          pacmanY={pacmanY}
+          map={map.current.grids}
+          dots={dots.current}
+          dx={deltaXRef.current}
+          dy={deltaYRef.current}
+          pacmanMoving={pacmanMoving.current}
+          ghosts={ghosts.current}
+          score={score.current}
+          colorTheme={colorTheme}
+        />
+      </div>
+      ) : (
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <h1>Game Over {gameOver ? 'true' : 'false'}!</h1>
+          <p>Score: {score.current}</p>
+          <button onClick={handleRetry}>Retry</button>
+        </div>
+      )}
+    </>
   );
 };
 
