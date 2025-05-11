@@ -14,7 +14,7 @@ class Ghost {
 
 // Usage: ./User.js
 // Implement Pac-Man game logic, pass data to GameUI for display
-const PacmanGame = ({ colorTheme }) => {
+const PacmanGame = ({ colorTheme, sendScore }) => {
   // ! Directly referencing states in useEffect always give their initial value
   // useRef for tracking values
   const [pacmanX, setPacmanX] = useState(GAMEMAP_1.initialPacmanX);
@@ -41,6 +41,35 @@ const PacmanGame = ({ colorTheme }) => {
   // dummy timer variable, delete if end game condition is completed
   const [timer, setTimer] = useState(10);
 
+  // Add Keyboard Input
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+      }
+      switch (e.key) {
+        case 'ArrowRight':
+          inputDir.current = RIGHT;
+          break;
+        case 'ArrowLeft':
+          inputDir.current = LEFT;
+          break;
+        case 'ArrowUp':
+          inputDir.current = UP;
+          break;
+        case 'ArrowDown':
+          inputDir.current = DOWN;
+          break;
+        default:
+          return;
+      }
+      inputMemory.current = MAX_MEM;
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Game Initialization
   useEffect(() => {
     resetStates();
@@ -55,6 +84,7 @@ const PacmanGame = ({ colorTheme }) => {
           setGameOver(true);
           clearInterval(timerInterval);
           clearInterval(gameLoopRef.current); // Stop game loop when game ends
+          sendScore(score.current);
           return 0;
         }
       });
@@ -262,36 +292,6 @@ const PacmanGame = ({ colorTheme }) => {
       });
     }, 1000);
   };
-
-  // Add Keyboard Input
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-      }
-      
-      switch (e.key) {
-        case 'ArrowRight':
-          inputDir.current = RIGHT;
-          break;
-        case 'ArrowLeft':
-          inputDir.current = LEFT;
-          break;
-        case 'ArrowUp':
-          inputDir.current = UP;
-          break;
-        case 'ArrowDown':
-          inputDir.current = DOWN;
-          break;
-        default:
-          return;
-      }
-      inputMemory.current = MAX_MEM;
-    };
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   return (
     <>
