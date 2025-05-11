@@ -150,7 +150,7 @@ const ghostsRender = ghosts.map((ghost, index) => {
       {powerupElements}
       {pacmanPlace}
       {ghostsRender}
-      <text x={map[0] ? map[0]?.length * cellSize - 15 : 0} y={20} fill="white" fontFamily="'Press Start 2P', cursive" fontSize="16">
+      <text x={map[0] ? map[0]?.length * cellSize - 25 : 0} y={15} fill="white" fontFamily="'Press Start 2P', cursive" fontSize="12">
         Score:{score}
       </text>
     </GameContainer>

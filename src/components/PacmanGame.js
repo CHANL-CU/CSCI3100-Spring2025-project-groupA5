@@ -118,10 +118,11 @@ class Ghost {
       
       // Calculate Manhattan distance to target
       const distance = Math.abs(nextGrid.x - target.x) + Math.abs(nextGrid.y - target.y);
-      const score = avoidTarget ? distance : -distance;
       
-      if (score > bestScore) {
-        bestScore = score;
+      if (distance === bestScore && Math.random() > 0.5) {
+        bestDir = dir;
+      } else if ((avoidTarget && distance > bestScore) || (!avoidTarget && distance < bestScore)) {
+        bestScore = distance;
         bestDir = dir;
       }
     }
@@ -342,7 +343,7 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
       ghosts.current.push(new Ghost(
         ghostSpawns.current[i].x*GRID_SIDE, 
         ghostSpawns.current[i].y*GRID_SIDE, 
-        ghostAIRandom
+        i % 6 === 0 ? ghostAISeek : ghostAIRandom
       ));
       i = (i + 1) % ghostSpawns.current.length;
     }
@@ -537,9 +538,13 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     initGame();
   };
 
-  const ghostAIRandom = (pacman, grids, ghostInstance) => {
+  const ghostAIRandom = (pacmanGrid, grids, ghostInstance) => {
     const dirs = ghostInstance.getPossibleDirections(grids);
     return dirs[Math.floor(Math.random() * dirs.length)];
+  }
+
+  const ghostAISeek = (pacmanGrid, grids, ghostInstance) => {
+    return ghostInstance.findPathToTarget(grids, {x: pacmanGrid.x, y: pacmanGrid.y}, false);
   }
 
   return (
