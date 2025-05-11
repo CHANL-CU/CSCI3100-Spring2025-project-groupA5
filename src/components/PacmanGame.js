@@ -9,6 +9,7 @@ class Ghost {
         this.x = x;
         this.y = y;
         this.chooseDir = chooseDir; // (grids, pacmanPosition) => DIR
+        this.fear=1//determine if ghost is in fear mode
     }
 }
 
