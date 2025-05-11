@@ -15,6 +15,7 @@ const User = (props) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(COLOR_THEMES[0]); // Default theme
+  const [gameStarted, setGameStarted] = useState(false);
 
   useEffect(() => {
     checkAdmin();
@@ -78,6 +79,14 @@ const User = (props) => {
     setSelectedTheme(theme);
     setColorDropdownOpen(false);
   };
+  
+  const startGame = () => {
+    setGameStarted(true);
+  }
+
+  const stopGame = () => {
+    setGameStarted(false);
+  }
 
   return (
     <BrowserRouter>
@@ -126,8 +135,18 @@ const User = (props) => {
         </Header>
         <BodyContainer>
           <Routes>
-            <Route path="/" element={<PacmanGame colorTheme={selectedTheme} />} />
-            <Route path="/leaderboard" element={<Leaderboard username={props.username} />} />
+            <Route path="/" element={
+              gameStarted ? 
+              <PacmanGame colorTheme={selectedTheme} /> : 
+              <StartButton onClick={startGame}
+              style={{
+                backgroundColor: `${selectedTheme[0]}`,
+                color: `${selectedTheme[2]}` 
+              }}>
+              Start Game
+              </StartButton>} 
+            />
+            <Route path="/leaderboard" element={<Leaderboard username={props.username} stopGame={stopGame} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BodyContainer>
@@ -237,6 +256,19 @@ const BodyContainer = styled.div`
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   font-family: 'Poppins', sans-serif;
+`;
+
+const StartButton = styled.button`
+  margin-left: 0px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 18px;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 export default User;

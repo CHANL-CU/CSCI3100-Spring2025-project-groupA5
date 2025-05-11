@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 
 // Usage: ./User.js
 // Fetch and display usernames and scores
-const Leaderboard = (props) => {
+const Leaderboard = ({ username, stopGame }) => {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
+    stopGame();
     fetchUsers();
   }, []);
 
@@ -42,7 +43,7 @@ const Leaderboard = (props) => {
         </thead>
         <tbody>
           {leaderboardRows.map((user, index) => (
-            <tr key={index} style={user.name === props.username ? styles.highlightRow : {}}>
+            <tr key={index} style={user.name === username ? styles.highlightRow : {}}>
               <td>{index + 1}</td>
               <td>{user.name || '-'}</td>
               <td>{user.highScore}</td>
