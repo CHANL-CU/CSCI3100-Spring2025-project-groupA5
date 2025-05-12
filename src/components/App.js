@@ -28,7 +28,7 @@ const App = () => {
 
   const regenSession = async () => {
     const data = { asAdmin };
-    await fetch('${process.env.REACT_APP_API_BASE_URL}/session-regen', {
+    await fetch(`${process.env.REACT_APP_API_BASE_URL}/session-regen`, {
       method: 'POST',
       credentials: 'include',
       headers: {

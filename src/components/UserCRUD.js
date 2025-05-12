@@ -15,7 +15,7 @@ const UserCRUD = ({ styles }) => {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch('${process.env.REACT_APP_API_BASE_URL}/admin/users', {
+            const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin/users`, {
                 credentials: 'include'
             });
             if (!res.ok) throw new Error('Failed to fetch users.');
@@ -52,7 +52,7 @@ const UserCRUD = ({ styles }) => {
 
         try {
             const payload = { name, password, email, highScore, isAdmin: newUser.isAdmin };
-            const res = await fetch('${process.env.REACT_APP_API_BASE_URL}/admin/users', {
+            const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin/users`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
