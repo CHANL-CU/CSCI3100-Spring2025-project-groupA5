@@ -26,7 +26,7 @@ privateKeyPem = key.exportKey('private')
 // CORS configurations
 const cors = require('cors');
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'https://csci-3100-spring2025-project-group-a5-pp21llr8o.vercel.app/',
   credentials: true
 }));
 app.use(express.json());
