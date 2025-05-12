@@ -11,6 +11,7 @@
     "check-password-strength": "^3.0.0",
     "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "framer-motion": "^12.10.1",

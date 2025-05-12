@@ -1,4 +1,5 @@
 /* --------------- Declarations and Configurations --------------- */
+require('dotenv').config(); // Loads .env contents into process.env
 // Express is a minimal Node.js framework
 const express = require('express');
 const app = express();
@@ -48,7 +49,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'csci3100a5@gmail.com', // email
-        pass: 'nukrebrrtigrzhou', // email app password
+        pass: process.env.EMAIL_PASSWORD, // email app password, not pushed to GitHub
     },
 });
 
