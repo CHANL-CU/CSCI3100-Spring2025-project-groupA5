@@ -15,7 +15,7 @@ const UserCRUD = ({ styles }) => {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin/users`, {
+            const res = await fetch(`http://localhost:8080/admin/users`, {
                 credentials: 'include'
             });
             if (!res.ok) throw new Error('Failed to fetch users.');
@@ -52,7 +52,7 @@ const UserCRUD = ({ styles }) => {
 
         try {
             const payload = { name, password, email, highScore, isAdmin: newUser.isAdmin };
-            const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin/users`, {
+            const res = await fetch(`http://localhost:8080/admin/users`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -99,7 +99,7 @@ const UserCRUD = ({ styles }) => {
         }
 
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin/users/${editingUserId}`, {
+            const res = await fetch(`http://localhost:8080/admin/users/${editingUserId}`, {
                 method: 'PUT',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -119,7 +119,7 @@ const UserCRUD = ({ styles }) => {
         if (!window.confirm('Are you sure you want to delete this user?')) return;
 
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin/users/${userId}`, {
+            const res = await fetch(`http://localhost:8080/admin/users/${userId}`, {
                 method: 'DELETE',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' }
