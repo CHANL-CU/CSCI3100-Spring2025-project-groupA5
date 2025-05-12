@@ -26,7 +26,7 @@ const User = (props) => {
   }, []);
 
   const checkAdmin = async () => {
-    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/auth`, {
+    const response = await fetch('http://localhost:8080/auth', {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -46,7 +46,7 @@ const User = (props) => {
 
   const regenSession = async () => {
     const data = { asAdmin: false };
-    await fetch(`${process.env.REACT_APP_API_BASE_URL}/session-regen`, {
+    await fetch('http://localhost:8080/session-regen', {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -57,7 +57,7 @@ const User = (props) => {
   };
 
   const destroySession = async () => {
-    await fetch(`${process.env.REACT_APP_API_BASE_URL}/logout`, {
+    await fetch('http://localhost:8080/logout', {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -95,7 +95,7 @@ const User = (props) => {
           return;
       }
       try {
-          const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/update-score`, {
+          const res = await fetch(`http://localhost:8080/update-score`, {
               method: 'PUT',
               credentials: 'include',
               headers: { 'Content-Type': 'application/json' },

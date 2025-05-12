@@ -72,7 +72,7 @@ const Login = (props) => {
   }, []);
 
   const checkSession = async () => {
-    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/session`, {
+    const response = await fetch('http://localhost:8080/session', {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -94,7 +94,7 @@ const Login = (props) => {
     const name = document.getElementById('name').value;
     const passwordInput = document.getElementById('password').value;
   
-    const resp_pw = await fetch(`${process.env.REACT_APP_API_BASE_URL}/encrypt`, {
+    const resp_pw = await fetch('http://localhost:8080/encrypt', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ const Login = (props) => {
   
     const data = { name, password: encryptedPassword, asAdmin, licenseKey };
   
-    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/login`, {
+    const response = await fetch('http://localhost:8080/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ const Login = (props) => {
       return;
     }
   
-    const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/register`, {
+    const response = await fetch('http://localhost:8080/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

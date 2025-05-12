@@ -25,22 +25,10 @@ privateKeyPem = key.exportKey('private')
 
 // CORS configurations
 const cors = require('cors');
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      const vercelPreviewRegex = /^https:\/\/csci-3100-spring2025-project-group-a5-.*\.vercel\.app$/;
-
-      if (!origin) return callback(null, true);
-
-      if (vercelPreviewRegex.test(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('CORS policy blocked: Invalid origin'));
-      }
-    },
-    credentials: true 
-  })
-);
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
 
 // Establish Mongo database connection

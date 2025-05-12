@@ -16,7 +16,7 @@ const Admin = (props) => {
 
   const regenSession = async () => {
     const data = { asAdmin: true };
-    await fetch(`${process.env.REACT_APP_API_BASE_URL}/session-regen`, {
+    await fetch('http://localhost:8080/session-regen', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -25,7 +25,7 @@ const Admin = (props) => {
   };
 
   const destroySession = async () => {
-    await fetch(`${process.env.REACT_APP_API_BASE_URL}/logout`, {
+    await fetch('http://localhost:8080/logout', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
