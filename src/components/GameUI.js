@@ -83,66 +83,53 @@ const GameUI = ({ pacmanX, pacmanY, map, dots, powerups, dx, dy, pacmanMoving, g
       transform={`translate(${pacmanX + Math.floor(cellSize / 2)}, ${pacmanY + Math.floor(cellSize / 2)}) rotate(${dir})`} />
   );
 
-  const dirToAngle = (dir) => {
-    switch (dir) {
-        case UP: return 270;
-        case DOWN: return 90;
-        case LEFT: return 180;
-        case RIGHT: return 0;
-    }
-    return 0;
-  }
-
   const ghostColors = ['red', 'pink', 'cyan', 'orange', 'purple', 'green']; //ghost colors
   const fearColor = '#0073E6'; // Dark blue for fear mode
   const skinColor = '#FAD7A0'; // eye color in fear
   const mouthColor = 'pink'; // Pink zig-zag mouth in fear
 
-const ghostsRender = ghosts.map((ghost, index) => {
-  const isScared = ghost.fear > 0; // Check if ghost is in fear mode
-  const ghostColor = ghost.fear > 0 ? (ghost.fear <= 180 ? (ghost.fear % 20 > 10 ? 'white ' : fearColor) : fearColor) : ghostColors[index % ghostColors.length];
-
-  return (
-    <g key={index} transform={`translate(${ghost.x}, ${ghost.y})`}>
-      {/* Ghost Body */}
-      <path
-        d="M 2 8 
-           A 8 8 0 0 1 18 8 
-           V 16 
-           Q 15 19 12 14
-           Q 10 20 6 14
-           Q 5 19 2 14
-           Z"
-        fill={ghostColor} 
-      />
-      
-      {/* Ghost Eyes (Reduced Size in Fear Mode) */}
-      <circle cx="6" cy="6" r={isScared ? 2.0 : 2.8} fill={isScared ? skinColor : 'white'} /> {/* Smaller eyes in fear mode */}
-      <circle cx="14" cy="6" r={isScared ? 2.0 : 2.8} fill={isScared ? skinColor : 'white'} /> {/* Smaller eyes in fear mode */}
-      {!isScared && ( // Pupils only appear when NOT scared
-        <>
-          <circle cx="6" cy="6" r="1.6" fill="blue" />
-          <circle cx="14" cy="6" r="1.6" fill="blue" />
-        </>
-      )}
-
-      {/* Zig-Zag Mouth (Only in Fear Mode) */}
-      {isScared && (
+  const ghostsRender = ghosts.map((ghost, index) => {
+    const isScared = ghost.fear > 0; // Check if ghost is in fear mode
+    const ghostColor = ghost.fear > 0 ? (ghost.fear <= 180 ? (ghost.fear % 20 > 10 ? 'white ' : fearColor) : fearColor) : ghostColors[index % ghostColors.length];
+    return (
+      <g key={index} transform={`translate(${ghost.x}, ${ghost.y})`}>
+        {/* Ghost Body */}
         <path
-          d="M 5 12 
-             L 7 14 
-             L 9 12 
-             L 11 14 
-             L 13 12 
-             L 15 14"
-          stroke={mouthColor}
-          strokeWidth="1.5"
-          fill="none"
+          d="M 2 8 
+            A 8 8 0 0 1 18 8 
+            V 16 
+            Q 15 19 12 14
+            Q 10 20 6 14
+            Q 5 19 2 14
+            Z"
+          fill={ghostColor} 
         />
-      )}
-    </g>
-  );
-});
+        {/* Ghost Eyes (Reduced Size in Fear Mode) */}
+        <circle cx="6" cy="6" r={isScared ? 2.0 : 2.8} fill={isScared ? skinColor : 'white'} /> {/* Smaller eyes in fear mode */}
+        <circle cx="14" cy="6" r={isScared ? 2.0 : 2.8} fill={isScared ? skinColor : 'white'} /> {/* Smaller eyes in fear mode */}
+        {!isScared && ( // Pupils only appear when NOT scared
+          <>
+            <circle cx="6" cy="6" r="1.6" fill="blue" />
+            <circle cx="14" cy="6" r="1.6" fill="blue" />
+          </>
+        )}
+        {/* Zig-Zag Mouth (Only in Fear Mode) */}
+        {isScared && (
+          <path
+            d="M 5 12 
+              L 7 14 
+              L 9 12 
+              L 11 14 
+              L 13 12 
+              L 15 14"
+            stroke={mouthColor}
+            strokeWidth="1.5"
+            fill="none"
+          />
+        )}
+      </g>
+    );
+  });
   return (
     <GameContainer viewBox={`0 0 ${map[0] ? map[0]?.length * cellSize : 0} ${map.length * cellSize}`}>
       {mapTiles}

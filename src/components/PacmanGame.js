@@ -359,6 +359,7 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     return gameLoop;
   }
 
+  // Helper function to get current grid(s) of Pac-Man, can return array of 1 or 2 { x, y }
   const getPacmanGrids = (x, y) => {
     if (x % GRID_SIDE !== 0) return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}, 
                                     {x: Math.floor(x/GRID_SIDE)+1, y: Math.floor(y/GRID_SIDE)}];
@@ -367,6 +368,7 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     return [{x: Math.floor(x/GRID_SIDE), y: Math.floor(y/GRID_SIDE)}];
   };
 
+  // Pac-Man change direction logic
   const pacmanSteer = () => {
     const pacmanGrids = getPacmanGrids(pacmanXRef.current, pacmanYRef.current);
     let newDeltaX = 0;
@@ -405,6 +407,7 @@ const PacmanGame = ({ colorTheme, sendScore }) => {
     deltaYRef.current = newDeltaY;
   };
 
+  // Pac-Man change position logic
   const pacmanMove = () => {
     if (!pacmanMoving.current || !mapRef.current || (deltaXRef.current === 0 && deltaYRef.current === 0)) return;
     const { grids, width, height } = mapRef.current;
